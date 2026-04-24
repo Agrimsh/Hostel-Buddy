@@ -16,7 +16,14 @@ app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests
 
 // Routes
+const itemRoutes = require("./routes/itemRoutes");
+const path = require("path");
+
+// Serve static files from 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
 
 // Example of a protected route using authMiddleware
 app.get("/api/dashboard", protect, (req, res) => {

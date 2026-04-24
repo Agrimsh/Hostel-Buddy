@@ -69,7 +69,7 @@ const Dashboard = () => {
 
         {/* Simple cards */}
         <div className="card-grid">
-          <div className="card">💸 Market Place</div>
+          <div className="card" onClick={() => navigate('/marketplace')}>💸 Market Place</div>
           <div className="card">🚪 Gate Buddy</div>
           <div className="card">🥤 Vending Pending</div>
         </div>

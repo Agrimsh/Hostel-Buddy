@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
+import MarketPlace from "./components/MarketPlace";
 
 // A simple PrivateRoute component to protect the dashboard
 const PrivateRoute = ({ children }) => {
@@ -18,6 +19,14 @@ function App() {
           element={
             <PrivateRoute>
               <Dashboard />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/marketplace" 
+          element={
+            <PrivateRoute>
+              <MarketPlace />
             </PrivateRoute>
           } 
         />
