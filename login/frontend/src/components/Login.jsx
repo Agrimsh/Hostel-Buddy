@@ -76,17 +76,17 @@ const Login = () => {
 
   return (
     <div className="container">
-      <h1 className="title">Hostel Buddy</h1>
-      <p className="subtitle">Login with your college email</p>
-
       {step === 1 ? (
         <form onSubmit={handleSendOtp}>
           <div className="form-group">
-            <label className="label">College Email</label>
+             <h1 className="title">Welcome</h1>
+             <p className="subtitle">Enter your email to receive a one-time password</p>
+
+            <label className="label">Email</label>
             <input
               type="email"
               className="input"
-              placeholder="e.g., student@college.ac.in"
+              placeholder="e.g., john@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -94,7 +94,7 @@ const Login = () => {
           </div>
           {error && <p className="error-msg">{error}</p>}
           <button type="submit" className="btn" disabled={loading}>
-            {loading ? "Sending..." : "Send OTP"}
+            {loading ? "Sending..." : "Send verification code"}
           </button>
         </form>
       ) : (
