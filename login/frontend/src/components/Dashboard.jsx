@@ -48,28 +48,33 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1 className="title" style={{margin: 0}}>Dashboard</h1>
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
-      </div>
+    return (
+    <div className="dashboard">
 
-      <div style={{ padding: "20px", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-        <h2>Welcome back, {user.email}!</h2>
-        <p style={{ marginTop: "10px", color: "#4b5563" }}>
-          You have successfully authenticated using the OTP system.
+      {/* Top bar */}
+      <header className="dashboard-header">
+        <h2>Hostel Buddy</h2>
+
+        <button onClick={handleLogout} className="logout-btn">
+          Logout
+        </button>
+      </header>
+
+      {/* Main content */}
+      <main className="dashboard-main">
+        <h1>Hey, Buddy 👋</h1>
+        <p className="subtitle">
+          Welcome back {user.email || "User"}
         </p>
 
-        {error && <p className="error-msg">{error}</p>}
-        
-        {data && (
-          <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#dbeafe", borderRadius: "8px" }}>
-            <h3 style={{ color: "#1e3a8a", marginBottom: "10px" }}>Protected Server Response:</h3>
-            <pre style={{ overflowX: "auto" }}>{JSON.stringify(data, null, 2)}</pre>
-          </div>
-        )}
-      </div>
+        {/* Simple cards */}
+        <div className="card-grid">
+          <div className="card">💸 Market Place</div>
+          <div className="card">🚪 Gate Buddy</div>
+          <div className="card">🥤 Vending Pending</div>
+        </div>
+      </main>
+
     </div>
   );
 };
