@@ -83,7 +83,7 @@ const MarketPlace = () => {
       formData.append("category", newItem.category);
       formData.append("condition", newItem.condition);
       formData.append("seller", sellerName);
-      
+
       if (imageFile) {
         formData.append("image", imageFile);
       }
@@ -95,7 +95,7 @@ const MarketPlace = () => {
 
       const data = await res.json();
       if (data.success) {
-        setItems([data.data, ...items]); 
+        setItems([data.data, ...items]);
         setShowAddModal(false);
         setNewItem({ title: '', price: '', category: 'Books', condition: 'New' });
         setImageFile(null);
@@ -141,8 +141,8 @@ const MarketPlace = () => {
             <h2>Marketplace</h2>
           </div>
           <div className="header-actions">
-            <button 
-              className="theme-toggle" 
+            <button
+              className="theme-toggle"
               onClick={() => setIsDarkMode(!isDarkMode)}
               aria-label="Toggle Dark Mode"
             >
