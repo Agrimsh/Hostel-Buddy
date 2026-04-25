@@ -122,6 +122,15 @@ const Dashboard = () => {
                 <div className="card-arrow">→</div>
               </div>
 
+              <div className="dashboard-card glass-card" onClick={() => navigate('/inbox')}>
+                <div className="card-icon gradient-bg-4">💬</div>
+                <div className="card-content">
+                  <h3>Inbox</h3>
+                  <p>View & reply to your marketplace messages.</p>
+                </div>
+                <div className="card-arrow">→</div>
+              </div>
+
             </div>
           </div>
         </main>
