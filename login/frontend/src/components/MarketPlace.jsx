@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MarketPlace.css';
+import ChatWindow from './ChatWindow';
+import SellerInbox from './SellerInbox';
 import './Dashboard.css'; // Import to reuse theme utilities
 
 const MarketPlace = () => {
@@ -24,6 +26,8 @@ const MarketPlace = () => {
     condition: 'New',
   });
   const [imageFile, setImageFile] = useState(null);
+  const [chatItem, setChatItem] = useState(null);
+  const [sellerInboxItem, setSellerInboxItem] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -216,12 +220,17 @@ const MarketPlace = () => {
 
                   <div className="card-actions">
                     {item.seller === sellerName ? (
-                      <button className="remove-btn" onClick={() => handleRemoveItem(item._id)}>
-                        🗑️ Remove
-                      </button>
+                      <>
+                        <button className="chat-btn" onClick={() => setSellerInboxItem(item)}>
+                          📨 Messages
+                        </button>
+                        <button className="remove-btn" onClick={() => handleRemoveItem(item._id)}>
+                          🗑️ Remove
+                        </button>
+                      </>
                     ) : (
                       <>
-                        <button className="chat-btn" onClick={() => alert(`Started chat with ${item.seller}`)}>
+                        <button className="chat-btn" onClick={() => setChatItem(item)}>
                           💬 Chat
                         </button>
                         <button className="buy-btn" onClick={() => alert(`Initiating purchase for ${item.title}`)}>
@@ -310,6 +319,24 @@ const MarketPlace = () => {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Chat Window */}
+        {chatItem && (
+          <ChatWindow
+            item={chatItem}
+            currentUser={sellerName}
+            onClose={() => setChatItem(null)}
+          />
+        )}
+
+        {/* Seller Inbox for own items */}
+        {sellerInboxItem && (
+          <SellerInbox
+            item={sellerInboxItem}
+            currentUser={sellerName}
+            onClose={() => setSellerInboxItem(null)}
+          />
         )}
       </div>
     </div>
