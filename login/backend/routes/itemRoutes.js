@@ -42,6 +42,7 @@ router.route("/")
   .post(upload.single("image"), itemController.createItem);
 
 router.route("/:id")
+  .put(upload.single("image"), itemController.updateItem)
   .delete(itemController.deleteItem);
 
 module.exports = router;

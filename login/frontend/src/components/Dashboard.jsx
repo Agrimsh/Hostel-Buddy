@@ -23,7 +23,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       const token = localStorage.getItem("token");
-      
+
       try {
         const response = await fetch(`${API_URL}/dashboard`, {
           headers: {
@@ -63,13 +63,13 @@ const Dashboard = () => {
         {/* Top bar */}
         <header className="dashboard-header glass">
           <div className="header-brand">
-             <span className="brand-icon">🏫</span>
-             <h2>Hostel Buddy</h2>
+            <span className="brand-icon"></span>
+            <h2>Hostel Buddy</h2>
           </div>
-          
+
           <div className="header-actions">
-            <button 
-              className="theme-toggle" 
+            <button
+              className="theme-toggle"
               onClick={() => setIsDarkMode(!isDarkMode)}
               aria-label="Toggle Dark Mode"
               title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
@@ -94,7 +94,7 @@ const Dashboard = () => {
           <div className="services-container">
             <h3 className="section-title">Your Campus Services</h3>
             <div className="card-grid">
-              
+
               <div className="dashboard-card glass-card" onClick={() => navigate('/marketplace')}>
                 <div className="card-icon gradient-bg-1">💸</div>
                 <div className="card-content">
@@ -108,7 +108,7 @@ const Dashboard = () => {
                 <div className="card-icon gradient-bg-2">🚪</div>
                 <div className="card-content">
                   <h3>Gate Buddy</h3>
-                  <p>Manage your entry and exit passes.</p>
+                  <p>Coming soon...</p>
                 </div>
                 <div className="card-arrow">→</div>
               </div>
@@ -117,7 +117,7 @@ const Dashboard = () => {
                 <div className="card-icon gradient-bg-3">🥤</div>
                 <div className="card-content">
                   <h3>Vending Pending</h3>
-                  <p>Check vending machine stock & pre-order.</p>
+                  <p>Coming soon...</p>
                 </div>
                 <div className="card-arrow">→</div>
               </div>

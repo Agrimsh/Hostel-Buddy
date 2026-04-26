@@ -19,12 +19,16 @@ const MarketPlace = () => {
   const [loading, setLoading] = useState(true);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newItem, setNewItem] = useState({
     title: '',
     price: '',
     category: 'Books',
     condition: 'New',
+    name: '',
+    roomNumber: '',
   });
+  const [editItem, setEditItem] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [chatItem, setChatItem] = useState(null);
   const [sellerInboxItem, setSellerInboxItem] = useState(null);
@@ -34,8 +38,8 @@ const MarketPlace = () => {
   const user = JSON.parse(localStorage.getItem("user") || '{"email": "Student"}');
   const sellerName = user.email ? user.email.split('@')[0] : "Student";
 
-  const categories = ['All', 'Books', 'Electronics', 'Appliances', 'Stationery', 'Vehicles'];
-  const formCategories = ['Books', 'Electronics', 'Appliances', 'Stationery', 'Vehicles'];
+  const categories = ['All', 'Books', 'Electronics', 'Appliances', 'Stationery', 'Vehicles', 'Others'];
+  const formCategories = ['Books', 'Electronics', 'Appliances', 'Stationery', 'Vehicles', 'Others'];
 
   useEffect(() => {
     localStorage.setItem("darkMode", isDarkMode);
@@ -69,6 +73,11 @@ const MarketPlace = () => {
     setNewItem({ ...newItem, [name]: value });
   };
 
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditItem({ ...editItem, [name]: value });
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -87,6 +96,8 @@ const MarketPlace = () => {
       formData.append("category", newItem.category);
       formData.append("condition", newItem.condition);
       formData.append("seller", sellerName);
+      formData.append("name", newItem.name);
+      formData.append("roomNumber", newItem.roomNumber);
 
       if (imageFile) {
         formData.append("image", imageFile);
@@ -101,12 +112,52 @@ const MarketPlace = () => {
       if (data.success) {
         setItems([data.data, ...items]);
         setShowAddModal(false);
-        setNewItem({ title: '', price: '', category: 'Books', condition: 'New' });
+        setNewItem({ title: '', price: '', category: 'Books', condition: 'New', name: '', roomNumber: '' });
         setImageFile(null);
       }
     } catch (error) {
       console.error("Error adding item:", error);
       alert("Failed to add item");
+    }
+  };
+
+  const handleEditClick = (item) => {
+    setEditItem(item);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateItem = async (e) => {
+    e.preventDefault();
+    if (!editItem.title || !editItem.price) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("title", editItem.title);
+      formData.append("price", editItem.price);
+      formData.append("category", editItem.category);
+      formData.append("condition", editItem.condition);
+      formData.append("name", editItem.name);
+      formData.append("roomNumber", editItem.roomNumber);
+
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      const res = await fetch(`${API_URL}/items/${editItem._id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setItems(items.map(i => i._id === editItem._id ? data.data : i));
+        setShowEditModal(false);
+        setEditItem(null);
+        setImageFile(null);
+      }
+    } catch (error) {
+      console.error("Error updating item:", error);
+      alert("Failed to update item");
     }
   };
 
@@ -210,25 +261,30 @@ const MarketPlace = () => {
                     <div className="product-meta">
                       <div className="seller-info">
                         <div className="seller-avatar">
-                          {item.seller.charAt(0).toUpperCase()}
+                          {(item.name || item.seller).charAt(0).toUpperCase()}
                         </div>
-                        <span className="seller-name">{item.seller}</span>
+                        <span className="seller-name">
+                          {item.name || item.seller} {item.roomNumber && item.roomNumber !== "N/A" ? `(Room: ${item.roomNumber})` : ''}
+                        </span>
                       </div>
                       <span className="product-condition">{item.condition}</span>
                     </div>
                   </div>
 
-                  <div className="card-actions">
-                    {item.seller === sellerName ? (
-                      <>
-                        <button className="chat-btn" onClick={() => setSellerInboxItem(item)}>
-                          📨 Messages
-                        </button>
-                        <button className="remove-btn" onClick={() => handleRemoveItem(item._id)}>
-                          🗑️ Remove
-                        </button>
-                      </>
-                    ) : (
+                    <div className="card-actions">
+                      {item.seller === sellerName ? (
+                        <>
+                          <button className="chat-btn" onClick={() => setSellerInboxItem(item)}>
+                            📨 Messages
+                          </button>
+                          <button className="edit-btn" onClick={() => handleEditClick(item)}>
+                            ✏️ Edit
+                          </button>
+                          <button className="remove-btn" onClick={() => handleRemoveItem(item._id)}>
+                            🗑️ Remove
+                          </button>
+                        </>
+                      ) : (
                       <>
                         <button className="chat-btn" onClick={() => setChatItem(item)}>
                           💬 Chat
@@ -270,6 +326,32 @@ const MarketPlace = () => {
                     placeholder="e.g. Engineering Mathematics Textbook"
                     required
                   />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Your Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={newItem.name}
+                      onChange={handleInputChange}
+                      placeholder="e.g. John Doe"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Room Number</label>
+                    <input
+                      type="text"
+                      name="roomNumber"
+                      value={newItem.roomNumber}
+                      onChange={handleInputChange}
+                      placeholder="e.g. A-102"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="form-row">
@@ -316,6 +398,104 @@ const MarketPlace = () => {
                 </div>
 
                 <button type="submit" className="submit-btn">Post Item</button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Item Modal */}
+        {showEditModal && editItem && (
+          <div className="modal-overlay" onClick={() => { setShowEditModal(false); setEditItem(null); }}>
+            <div className="modal-content dark-mode-aware" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Edit Item</h2>
+                <button className="close-btn" onClick={() => { setShowEditModal(false); setEditItem(null); }}>&times;</button>
+              </div>
+
+              <form onSubmit={handleUpdateItem} className="add-item-form">
+                <div className="form-group">
+                  <label>Item Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={editItem.title}
+                    onChange={handleEditInputChange}
+                    placeholder="e.g. Engineering Mathematics Textbook"
+                    required
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Your Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={editItem.name}
+                      onChange={handleEditInputChange}
+                      placeholder="e.g. John Doe"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Room Number</label>
+                    <input
+                      type="text"
+                      name="roomNumber"
+                      value={editItem.roomNumber}
+                      onChange={handleEditInputChange}
+                      placeholder="e.g. A-102"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Price (₹)</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={editItem.price}
+                      onChange={handleEditInputChange}
+                      placeholder="e.g. 500"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Category</label>
+                    <select name="category" value={editItem.category} onChange={handleEditInputChange}>
+                      {formCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Condition</label>
+                  <select name="condition" value={editItem.condition} onChange={handleEditInputChange}>
+                    <option value="New">New</option>
+                    <option value="Like New">Like New</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Update Image (Optional)</label>
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                  {editItem.image && !imageFile && <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Current image exists. Upload to replace.</p>}
+                </div>
+
+                <button type="submit" className="submit-btn">Update Item</button>
               </form>
             </div>
           </div>

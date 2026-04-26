@@ -26,7 +26,15 @@ const itemSchema = new mongoose.Schema(
     },
     seller: {
       type: String,
+      required: [true, "Seller username is required"],
+    },
+    name: {
+      type: String,
       required: [true, "Seller name is required"],
+    },
+    roomNumber: {
+      type: String,
+      required: [true, "Room number is required"],
     },
   },
   { timestamps: true }

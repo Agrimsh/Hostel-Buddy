@@ -19,7 +19,7 @@ exports.getItems = async (req, res) => {
 // @access  Public (or protected)
 exports.createItem = async (req, res) => {
   try {
-    const { title, price, category, condition, seller } = req.body;
+    const { title, price, category, condition, seller, name, roomNumber } = req.body;
     
     let imageUrl = "";
     if (req.file) {
@@ -33,12 +33,57 @@ exports.createItem = async (req, res) => {
       category,
       condition,
       seller,
+      name: name || seller, // fallback to seller username if not provided
+      roomNumber: roomNumber || "N/A",
       image: imageUrl,
     });
 
     res.status(201).json({ success: true, data: newItem });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error creating item", error: error.message });
+  }
+};
+
+// @desc    Update an item
+// @route   PUT /api/items/:id
+// @access  Public (or protected)
+exports.updateItem = async (req, res) => {
+  try {
+    const { title, price, category, condition, name, roomNumber } = req.body;
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    const updateData = {
+      title: title || item.title,
+      price: price ? Number(price) : item.price,
+      category: category || item.category,
+      condition: condition || item.condition,
+      name: name || item.name,
+      roomNumber: roomNumber || item.roomNumber,
+    };
+
+    if (req.file) {
+      // If a new image is uploaded, delete the old one first
+      if (item.image) {
+        const oldImagePath = path.join(__dirname, '..', item.image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedItem = await Item.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({ success: true, data: updatedItem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error updating item", error: error.message });
   }
 };
 

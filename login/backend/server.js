@@ -48,6 +48,9 @@ app.get("/api/dashboard", protect, (req, res) => {
   });
 });
 
+const User = require("./models/User");
+const sendEmail = require("./utils/sendEmail");
+
 // ─── Socket.io Real-Time Chat ────────────────────────────────────────────────
 io.on("connection", (socket) => {
   console.log(`⚡ User connected: ${socket.id}`);
@@ -76,6 +79,38 @@ io.on("connection", (socket) => {
       io.to(`user_${receiver}`).emit("receiveMessage", newMessage);
       // Also emit back to sender's room (for multi-tab sync)
       io.to(`user_${sender}`).emit("receiveMessage", newMessage);
+
+      // --- Send Email Notification to Receiver ---
+      // Fire and forget so we don't block the socket response
+      (async () => {
+        try {
+          // receiver is usually just the username (part before @). Let's find their full email.
+          const receiverUser = await User.findOne({ email: new RegExp(`^${receiver}@`, "i") });
+          if (receiverUser) {
+            const subject = `1 new message from ${sender}`;
+            const emailBody = `
+              <h2>Hostel Buddy Notification</h2>
+              <p>You have <strong>1 new message</strong> from <strong>${sender}</strong>.</p>
+              <p><strong>Item:</strong> ${itemTitle || "Unknown Item"}</p>
+              <p><strong>Message:</strong></p>
+              <blockquote style="border-left: 4px solid #ccc; padding-left: 10px; margin-left: 0; font-style: italic;">
+                ${message}
+              </blockquote>
+              <br/>
+              <p><a href="http://localhost:5173/inbox" style="padding: 10px 15px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Go to Inbox to Reply</a></p>
+            `;
+            await sendEmail({
+              email: receiverUser.email,
+              subject,
+              message: emailBody,
+            });
+          }
+        } catch (emailErr) {
+          console.error("Error sending email notification:", emailErr);
+        }
+      })();
+      // -------------------------------------------
+
     } catch (error) {
       console.error("Socket sendMessage error:", error);
     }
