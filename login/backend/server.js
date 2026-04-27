@@ -47,6 +47,11 @@ app.get("/api/dashboard", protect, (req, res) => {
   });
 });
 
+// Route to keep the server awake (for free hosting tiers like Render)
+app.get("/api/ping", (req, res) => {
+  res.status(200).json({ success: true, message: "Server is awake!" });
+});
+
 const User = require("./models/User");
 const sendEmail = require("./utils/sendEmail");
 
