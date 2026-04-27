@@ -103,7 +103,7 @@ io.on("connection", (socket) => {
                 ${message}
               </blockquote>
               <br/>
-              <p><a href="https://hostel-buddy374.vercel.app/inbox" style="padding: 10px 15px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Go to Inbox to Reply</a></p>
+              <p><a href="https://hostel-buddy373.vercel.app/inbox" style="padding: 10px 15px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Go to Inbox to Reply</a></p>
             `;
             await sendEmail({
               email: receiverUser.email,
