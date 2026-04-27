@@ -20,9 +20,9 @@ const itemSchema = new mongoose.Schema(
       type: String,
       required: [true, "Condition is required"],
     },
-    image: {
-      type: String,
-      default: "", // Will store the path to the uploaded image
+    images: {
+      type: [String],
+      default: [], // Stores paths to uploaded images (supports multiple)
     },
     seller: {
       type: String,

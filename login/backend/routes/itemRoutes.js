@@ -39,10 +39,10 @@ const upload = multer({
 // Routes
 router.route("/")
   .get(itemController.getItems)
-  .post(upload.single("image"), itemController.createItem);
+  .post(upload.array("images", 5), itemController.createItem);
 
 router.route("/:id")
-  .put(upload.single("image"), itemController.updateItem)
+  .put(upload.array("images", 5), itemController.updateItem)
   .delete(itemController.deleteItem);
 
 module.exports = router;

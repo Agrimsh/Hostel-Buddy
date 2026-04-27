@@ -21,10 +21,9 @@ exports.createItem = async (req, res) => {
   try {
     const { title, price, category, condition, seller, name, roomNumber } = req.body;
     
-    let imageUrl = "";
-    if (req.file) {
-      // The file is uploaded to the 'uploads' folder
-      imageUrl = `/uploads/${req.file.filename}`;
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map(file => `/uploads/${file.filename}`);
     }
 
     const newItem = await Item.create({
@@ -33,9 +32,9 @@ exports.createItem = async (req, res) => {
       category,
       condition,
       seller,
-      name: name || seller, // fallback to seller username if not provided
+      name: name || seller,
       roomNumber: roomNumber || "N/A",
-      image: imageUrl,
+      images: imageUrls,
     });
 
     res.status(201).json({ success: true, data: newItem });
@@ -65,15 +64,16 @@ exports.updateItem = async (req, res) => {
       roomNumber: roomNumber || item.roomNumber,
     };
 
-    if (req.file) {
-      // If a new image is uploaded, delete the old one first
-      if (item.image) {
-        const oldImagePath = path.join(__dirname, '..', item.image);
+    if (req.files && req.files.length > 0) {
+      // Delete old images if they exist
+      const existingImages = item.images && item.images.length > 0 ? item.images : [];
+      existingImages.forEach(img => {
+        const oldImagePath = path.join(__dirname, '..', img);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
-      }
-      updateData.image = `/uploads/${req.file.filename}`;
+      });
+      updateData.images = req.files.map(file => `/uploads/${file.filename}`);
     }
 
     const updatedItem = await Item.findByIdAndUpdate(req.params.id, updateData, {
@@ -98,13 +98,14 @@ exports.deleteItem = async (req, res) => {
       return res.status(404).json({ success: false, message: "Item not found" });
     }
 
-    // Optional: Delete the image file from server if it exists
-    if (item.image) {
-      const imagePath = path.join(__dirname, '..', item.image);
+    // Delete all associated images from disk
+    const imagesToDelete = item.images && item.images.length > 0 ? item.images : [];
+    imagesToDelete.forEach(img => {
+      const imagePath = path.join(__dirname, '..', img);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
       }
-    }
+    });
 
     await Item.findByIdAndDelete(req.params.id);
 

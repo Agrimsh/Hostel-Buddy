@@ -29,9 +29,12 @@ const MarketPlace = () => {
     roomNumber: '',
   });
   const [editItem, setEditItem] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
   const [chatItem, setChatItem] = useState(null);
   const [sellerInboxItem, setSellerInboxItem] = useState(null);
+
+  // Lightbox state
+  const [lightbox, setLightbox] = useState({ open: false, images: [], index: 0 });
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -79,9 +82,9 @@ const MarketPlace = () => {
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setImageFiles(files);
     }
   };
 
@@ -99,9 +102,7 @@ const MarketPlace = () => {
       formData.append("name", newItem.name);
       formData.append("roomNumber", newItem.roomNumber);
 
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
+      imageFiles.forEach(file => formData.append("images", file));
 
       const res = await fetch(`${API_URL}/items`, {
         method: "POST",
@@ -113,7 +114,7 @@ const MarketPlace = () => {
         setItems([data.data, ...items]);
         setShowAddModal(false);
         setNewItem({ title: '', price: '', category: 'Books', condition: 'New', name: '', roomNumber: '' });
-        setImageFile(null);
+        setImageFiles([]);
       }
     } catch (error) {
       console.error("Error adding item:", error);
@@ -139,9 +140,7 @@ const MarketPlace = () => {
       formData.append("name", editItem.name);
       formData.append("roomNumber", editItem.roomNumber);
 
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
+      imageFiles.forEach(file => formData.append("images", file));
 
       const res = await fetch(`${API_URL}/items/${editItem._id}`, {
         method: "PUT",
@@ -153,7 +152,7 @@ const MarketPlace = () => {
         setItems(items.map(i => i._id === editItem._id ? data.data : i));
         setShowEditModal(false);
         setEditItem(null);
-        setImageFile(null);
+        setImageFiles([]);
       }
     } catch (error) {
       console.error("Error updating item:", error);
@@ -176,6 +175,7 @@ const MarketPlace = () => {
     }
   };
 
+  // Returns a resolved URL from a stored path
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=600';
     if (imagePath.startsWith('/uploads')) {
@@ -184,6 +184,31 @@ const MarketPlace = () => {
     }
     return imagePath;
   };
+
+  // Normalize old (single `image`) and new (multiple `images`) documents
+  const getItemImages = (item) => {
+    if (item.images && item.images.length > 0) return item.images.map(getImageUrl);
+    if (item.image) return [getImageUrl(item.image)];
+    return [getImageUrl(null)];
+  };
+
+  // Lightbox helpers
+  const openLightbox = (images, index) => setLightbox({ open: true, images, index });
+  const closeLightbox = () => setLightbox({ open: false, images: [], index: 0 });
+  const lightboxPrev = () => setLightbox(lb => ({ ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length }));
+  const lightboxNext = () => setLightbox(lb => ({ ...lb, index: (lb.index + 1) % lb.images.length }));
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightbox.open) return;
+    const handler = (e) => {
+      if (e.key === 'ArrowRight') lightboxNext();
+      if (e.key === 'ArrowLeft') lightboxPrev();
+      if (e.key === 'Escape') closeLightbox();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [lightbox.open]);
 
   return (
     <div className={`dashboard-wrapper ${isDarkMode ? "dark" : "light"}`}>
@@ -247,29 +272,53 @@ const MarketPlace = () => {
             </div>
           ) : (
             <div className="products-grid">
-              {filteredItems.map(item => (
-                <div key={item._id} className="product-card glass-card">
-                  <img src={getImageUrl(item.image)} alt={item.title} className="product-image" />
-
-                  <div className="product-info">
-                    <div className="product-header">
-                      <h3 className="product-title">{item.title}</h3>
-                      <span className="product-price">₹{item.price}</span>
-                    </div>
-                    <div className="product-category">{item.category}</div>
-
-                    <div className="product-meta">
-                      <div className="seller-info">
-                        <div className="seller-avatar">
-                          {(item.name || item.seller).charAt(0).toUpperCase()}
+              {filteredItems.map(item => {
+                const imgs = getItemImages(item);
+                return (
+                  <div key={item._id} className="product-card glass-card">
+                    {/* Hero image */}
+                    <div className="product-image-wrap">
+                      <img
+                        src={imgs[0]}
+                        alt={item.title}
+                        className="product-image"
+                        onClick={() => openLightbox(imgs, 0)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      {imgs.length > 1 && (
+                        <div className="product-thumbs">
+                          {imgs.map((src, i) => (
+                            <img
+                              key={i}
+                              src={src}
+                              alt={`Photo ${i + 1}`}
+                              className={`product-thumb ${i === 0 ? 'active-thumb' : ''}`}
+                              onClick={() => openLightbox(imgs, i)}
+                            />
+                          ))}
                         </div>
-                        <span className="seller-name">
-                          {item.name || item.seller} {item.roomNumber && item.roomNumber !== "N/A" ? `(Room: ${item.roomNumber})` : ''}
-                        </span>
-                      </div>
-                      <span className="product-condition">{item.condition}</span>
+                      )}
                     </div>
-                  </div>
+
+                    <div className="product-info">
+                      <div className="product-header">
+                        <h3 className="product-title">{item.title}</h3>
+                        <span className="product-price">₹{item.price}</span>
+                      </div>
+                      <div className="product-category">{item.category}</div>
+
+                      <div className="product-meta">
+                        <div className="seller-info">
+                          <div className="seller-avatar">
+                            {(item.name || item.seller).charAt(0).toUpperCase()}
+                          </div>
+                          <span className="seller-name">
+                            {item.name || item.seller} {item.roomNumber && item.roomNumber !== "N/A" ? `(Room: ${item.roomNumber})` : ''}
+                          </span>
+                        </div>
+                        <span className="product-condition">{item.condition}</span>
+                      </div>
+                    </div>
 
                     <div className="card-actions">
                       {item.seller === sellerName ? (
@@ -285,18 +334,16 @@ const MarketPlace = () => {
                           </button>
                         </>
                       ) : (
-                      <>
-                        <button className="chat-btn" onClick={() => setChatItem(item)}>
-                          💬 Chat
-                        </button>
-                        <button className="buy-btn" onClick={() => alert(`Initiating purchase for ${item.title}`)}>
-                          Buy Now
-                        </button>
-                      </>
-                    )}
+                        <>
+                          <button className="chat-btn" onClick={() => setChatItem(item)}>
+                            💬 Chat
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>
@@ -388,13 +435,21 @@ const MarketPlace = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Upload Image (Optional)</label>
+                  <label>Upload Photos (Optional, up to 5)</label>
                   <input
                     type="file"
-                    name="image"
+                    name="images"
                     accept="image/*"
+                    multiple
                     onChange={handleImageUpload}
                   />
+                  {imageFiles.length > 0 && (
+                    <div className="img-preview-strip">
+                      {imageFiles.map((f, i) => (
+                        <img key={i} src={URL.createObjectURL(f)} alt={`preview-${i}`} className="img-preview-thumb" />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <button type="submit" className="submit-btn">Post Item</button>
@@ -485,14 +540,26 @@ const MarketPlace = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Update Image (Optional)</label>
+                  <label>Update Photos (Optional, up to 5)</label>
                   <input
                     type="file"
-                    name="image"
+                    name="images"
                     accept="image/*"
+                    multiple
                     onChange={handleImageUpload}
                   />
-                  {editItem.image && !imageFile && <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Current image exists. Upload to replace.</p>}
+                  {imageFiles.length > 0 ? (
+                    <div className="img-preview-strip">
+                      {imageFiles.map((f, i) => (
+                        <img key={i} src={URL.createObjectURL(f)} alt={`preview-${i}`} className="img-preview-thumb" />
+                      ))}
+                    </div>
+                  ) : (
+                    getItemImages(editItem).length > 0 &&
+                    <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                      {getItemImages(editItem).length} current photo(s). Upload to replace.
+                    </p>
+                  )}
                 </div>
 
                 <button type="submit" className="submit-btn">Update Item</button>
@@ -517,6 +584,36 @@ const MarketPlace = () => {
             currentUser={sellerName}
             onClose={() => setSellerInboxItem(null)}
           />
+        )}
+
+        {/* ====== Lightbox ====== */}
+        {lightbox.open && (
+          <div className="lightbox-overlay" onClick={closeLightbox}>
+            <button className="lightbox-close" onClick={closeLightbox}>✕</button>
+            {lightbox.images.length > 1 && (
+              <button className="lightbox-nav lightbox-prev" onClick={e => { e.stopPropagation(); lightboxPrev(); }}>‹</button>
+            )}
+            <img
+              src={lightbox.images[lightbox.index]}
+              alt={`Photo ${lightbox.index + 1}`}
+              className="lightbox-img"
+              onClick={e => e.stopPropagation()}
+            />
+            {lightbox.images.length > 1 && (
+              <button className="lightbox-nav lightbox-next" onClick={e => { e.stopPropagation(); lightboxNext(); }}>›</button>
+            )}
+            {lightbox.images.length > 1 && (
+              <div className="lightbox-dots">
+                {lightbox.images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`lightbox-dot ${i === lightbox.index ? 'active' : ''}`}
+                    onClick={e => { e.stopPropagation(); setLightbox(lb => ({ ...lb, index: i })); }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
