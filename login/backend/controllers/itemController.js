@@ -1,6 +1,5 @@
 const Item = require("../models/Item");
-const fs = require('fs');
-const path = require('path');
+const { cloudinary } = require('../config/cloudinary');
 
 // @desc    Get all items
 // @route   GET /api/items
@@ -23,7 +22,7 @@ exports.createItem = async (req, res) => {
     
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      imageUrls = req.files.map(file => file.path); // Cloudinary URL
     }
 
     const newItem = await Item.create({
@@ -65,15 +64,23 @@ exports.updateItem = async (req, res) => {
     };
 
     if (req.files && req.files.length > 0) {
-      // Delete old images if they exist
+      // Delete old images if they exist on Cloudinary
       const existingImages = item.images && item.images.length > 0 ? item.images : [];
-      existingImages.forEach(img => {
-        const oldImagePath = path.join(__dirname, '..', img);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+      for (const imgUrl of existingImages) {
+        if (imgUrl.includes('cloudinary.com')) {
+          // Extract public_id from Cloudinary URL
+          const parts = imgUrl.split('/');
+          const filename = parts.pop().split('.')[0];
+          const folder = parts.pop();
+          const publicId = `${folder}/${filename}`;
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error("Error deleting old image from Cloudinary:", err);
+          }
         }
-      });
-      updateData.images = req.files.map(file => `/uploads/${file.filename}`);
+      }
+      updateData.images = req.files.map(file => file.path); // Cloudinary URL
     }
 
     const updatedItem = await Item.findByIdAndUpdate(req.params.id, updateData, {
@@ -98,14 +105,21 @@ exports.deleteItem = async (req, res) => {
       return res.status(404).json({ success: false, message: "Item not found" });
     }
 
-    // Delete all associated images from disk
+    // Delete all associated images from Cloudinary
     const imagesToDelete = item.images && item.images.length > 0 ? item.images : [];
-    imagesToDelete.forEach(img => {
-      const imagePath = path.join(__dirname, '..', img);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+    for (const imgUrl of imagesToDelete) {
+      if (imgUrl.includes('cloudinary.com')) {
+        const parts = imgUrl.split('/');
+        const filename = parts.pop().split('.')[0];
+        const folder = parts.pop();
+        const publicId = `${folder}/${filename}`;
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("Error deleting image from Cloudinary:", err);
+        }
       }
-    });
+    }
 
     await Item.findByIdAndDelete(req.params.id);
 

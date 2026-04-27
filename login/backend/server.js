@@ -32,8 +32,7 @@ app.use(express.json()); // Parses incoming JSON requests
 const itemRoutes = require("./routes/itemRoutes");
 const path = require("path");
 
-// Serve static files from 'uploads' directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Uploads are now handled by Cloudinary
 
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);

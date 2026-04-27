@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import imageCompression from 'browser-image-compression';
 import './MarketPlace.css';
 import ChatWindow from './ChatWindow';
 import SellerInbox from './SellerInbox';
@@ -32,6 +33,9 @@ const MarketPlace = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [chatItem, setChatItem] = useState(null);
   const [sellerInboxItem, setSellerInboxItem] = useState(null);
+
+  // Loading state for forms
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Lightbox state
   const [lightbox, setLightbox] = useState({ open: false, images: [], index: 0 });
@@ -81,10 +85,27 @@ const MarketPlace = () => {
     setEditItem({ ...editItem, [name]: value });
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      setImageFiles(files);
+      // Compress files to make uploads super fast
+      const options = {
+        maxSizeMB: 0.5, // 500KB max size
+        maxWidthOrHeight: 1200,
+        useWebWorker: true
+      };
+
+      try {
+        const compressedFiles = await Promise.all(
+          files.map(async (file) => {
+            return await imageCompression(file, options);
+          })
+        );
+        setImageFiles(compressedFiles);
+      } catch (error) {
+        console.error("Error compressing images:", error);
+        setImageFiles(files); // fallback to original if compression fails
+      }
     }
   };
 
@@ -104,6 +125,7 @@ const MarketPlace = () => {
 
       imageFiles.forEach(file => formData.append("images", file));
 
+      setIsSubmitting(true);
       const res = await fetch(`${API_URL}/items`, {
         method: "POST",
         body: formData,
@@ -119,6 +141,8 @@ const MarketPlace = () => {
     } catch (error) {
       console.error("Error adding item:", error);
       alert("Failed to add item");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,6 +166,7 @@ const MarketPlace = () => {
 
       imageFiles.forEach(file => formData.append("images", file));
 
+      setIsSubmitting(true);
       const res = await fetch(`${API_URL}/items/${editItem._id}`, {
         method: "PUT",
         body: formData,
@@ -157,6 +182,8 @@ const MarketPlace = () => {
     } catch (error) {
       console.error("Error updating item:", error);
       alert("Failed to update item");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -452,9 +479,12 @@ const MarketPlace = () => {
                   )}
                 </div>
 
-                <button type="submit" className="submit-btn">Post Item</button>
+                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Posting...' : 'Post Item'}
+                </button>
               </form>
             </div>
+
           </div>
         )}
 
@@ -562,7 +592,9 @@ const MarketPlace = () => {
                   )}
                 </div>
 
-                <button type="submit" className="submit-btn">Update Item</button>
+                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Updating...' : 'Update Item'}
+                </button>
               </form>
             </div>
           </div>
