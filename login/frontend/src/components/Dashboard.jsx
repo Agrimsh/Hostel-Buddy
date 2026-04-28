@@ -104,11 +104,11 @@ const Dashboard = () => {
                 <div className="card-arrow">→</div>
               </div>
 
-              <div className="dashboard-card glass-card">
+              <div className="dashboard-card glass-card" onClick={() => navigate('/gate-buddy')}>
                 <div className="card-icon gradient-bg-2">🚪</div>
                 <div className="card-content">
                   <h3>Gate Buddy</h3>
-                  <p>Coming soon...</p>
+                  <p>Book hostlers to pick your order at the gate.</p>
                 </div>
                 <div className="card-arrow">→</div>
               </div>

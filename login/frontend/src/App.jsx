@@ -6,6 +6,7 @@ import Dashboard from "./components/Dashboard";
 import MarketPlace from "./components/MarketPlace";
 import Inbox from "./components/Inbox";
 import NotificationListener from "./components/NotificationListener";
+import GateBuddy from "./components/GateBuddy";
 
 // A simple PrivateRoute component to protect the dashboard
 const PrivateRoute = ({ children }) => {
@@ -47,6 +48,14 @@ function App() {
           element={
             <PrivateRoute>
               <Inbox />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/gate-buddy" 
+          element={
+            <PrivateRoute>
+              <GateBuddy />
             </PrivateRoute>
           } 
         />
