@@ -265,7 +265,7 @@ const GateBuddy = () => {
           <section className="gb-feed-section" id="gb-feed">
             <div className="gb-feed-header">
               <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
-                 Live Picker Feed
+                Live Picker Feed
               </h2>
               <button className="gb-refresh-btn" onClick={fetchTrips}>↻ Refresh</button>
             </div>
