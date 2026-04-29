@@ -6,6 +6,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const gateRoutes = require("./routes/gateRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const Message = require("./models/Message");
 
@@ -39,6 +40,7 @@ const path = require("path");
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/gate", gateRoutes);
 
 // Example of a protected route using authMiddleware
 app.get("/api/dashboard", protect, (req, res) => {
@@ -121,6 +123,26 @@ io.on("connection", (socket) => {
       console.error("Socket sendMessage error:", error);
     }
   });
+
+  // ── Gate Buddy real-time events ──────────────────────────────
+  // Picker goes live → broadcast to all connected users
+  socket.on("gateTripPosted", (trip) => {
+    io.emit("newGateTrip", trip);
+    console.log(`🚪 New gate trip by ${trip.picker}`);
+  });
+
+  // Someone books a slot → broadcast updated trip
+  socket.on("gateTripBooked", (trip) => {
+    io.emit("gateTripUpdated", trip);
+    console.log(`📦 Trip ${trip._id} booked — ${trip.slotsLeft} slots left`);
+  });
+
+  // Picker cancels → broadcast removal
+  socket.on("gateTripCancelled", (tripId) => {
+    io.emit("gateTripRemoved", tripId);
+    console.log(`❌ Gate trip ${tripId} cancelled`);
+  });
+  // ─────────────────────────────────────────────────────────────
 
   socket.on("disconnect", () => {
     console.log(`🔌 User disconnected: ${socket.id}`);
