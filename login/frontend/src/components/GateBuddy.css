@@ -516,6 +516,276 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ---- Requests Section ---- */
+.gb-requests-section {
+  margin-top: 3.5rem;
+  animation: gbFadeUp 0.7s ease-out 0.3s both;
+}
+
+/* Pending count badge next to section title */
+.gb-pending-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+  box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+  animation: pulseDot 2s infinite;
+}
+
+/* Tab Buttons */
+.gb-request-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gb-request-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.light .gb-request-tab {
+  background: rgba(241,245,249,0.8);
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.dark .gb-request-tab {
+  background: rgba(30,41,59,0.5);
+  border-color: rgba(255,255,255,0.08);
+  color: #94a3b8;
+}
+.gb-request-tab:hover {
+  border-color: rgba(99,102,241,0.4);
+}
+.gb-request-tab.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+}
+
+.gb-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #f59e0b;
+  color: #fff;
+}
+.gb-request-tab.active .gb-tab-badge {
+  background: rgba(255,255,255,0.3);
+  color: #fff;
+}
+
+/* Request List */
+.gb-request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Request Card */
+.gb-request-card {
+  padding: 1.2rem 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.gb-request-card:hover {
+  transform: translateY(-3px);
+}
+
+.gb-request-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gb-request-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gb-request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.gb-request-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.light .gb-request-name { color: #1e293b; }
+.dark .gb-request-name  { color: #f1f5f9; }
+
+.gb-request-meta {
+  font-size: 0.82rem;
+}
+.light .gb-request-meta { color: #64748b; }
+.dark .gb-request-meta  { color: #94a3b8; }
+
+.gb-request-time {
+  font-size: 0.75rem;
+}
+.light .gb-request-time { color: #94a3b8; }
+.dark .gb-request-time  { color: #64748b; }
+
+/* Status Badge */
+.gb-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.gb-status-pending {
+  background: rgba(245,158,11,0.12);
+  color: #d97706;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+.dark .gb-status-pending {
+  background: rgba(245,158,11,0.15);
+  color: #fbbf24;
+  border-color: rgba(245,158,11,0.35);
+}
+
+.gb-status-approved {
+  background: rgba(16,185,129,0.1);
+  color: #059669;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+.dark .gb-status-approved {
+  background: rgba(16,185,129,0.15);
+  color: #34d399;
+  border-color: rgba(16,185,129,0.35);
+}
+
+.gb-status-rejected {
+  background: rgba(239,68,68,0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+.dark .gb-status-rejected {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+  border-color: rgba(239,68,68,0.35);
+}
+
+/* Order Details */
+.gb-request-order {
+  margin-top: 0.8rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.light .gb-request-order {
+  background: rgba(241,245,249,0.7);
+  color: #475569;
+  border-left: 3px solid #8b5cf6;
+}
+.dark .gb-request-order {
+  background: rgba(15,23,42,0.4);
+  color: #cbd5e1;
+  border-left: 3px solid #8b5cf6;
+}
+
+.gb-request-order-label {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.light .gb-request-order-label { color: #94a3b8; }
+.dark .gb-request-order-label  { color: #64748b; }
+
+/* Action Buttons */
+.gb-request-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.gb-approve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+  transition: all 0.3s ease;
+}
+.gb-approve-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16,185,129,0.45);
+}
+.gb-approve-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.gb-reject-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  border: 1.5px solid rgba(239,68,68,0.4);
+  color: #ef4444;
+  transition: all 0.3s ease;
+}
+.gb-reject-btn:hover:not(:disabled) {
+  background: rgba(239,68,68,0.1);
+  transform: translateY(-2px);
+}
+.gb-reject-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .gb-header { padding: 1rem 1.2rem; }
@@ -524,4 +794,9 @@
   .gb-trip-right { width: 100%; justify-content: space-between; }
   .gb-trip-stats { flex-direction: row; align-items: center; gap: 0.8rem; }
   .gb-feed-header { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .gb-request-tabs { flex-wrap: wrap; }
+  .gb-request-top { flex-wrap: wrap; }
+  .gb-request-actions { flex-wrap: wrap; justify-content: stretch; }
+  .gb-approve-btn, .gb-reject-btn { flex: 1; justify-content: center; }
+  .gb-status-badge { margin-top: 0.5rem; }
 }

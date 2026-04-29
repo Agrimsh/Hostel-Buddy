@@ -53,8 +53,16 @@ const gateTripSchema = new mongoose.Schema(
       {
         bookerEmail: String,
         booker: String,       // username
+        bookerName: String,   // explicit name provided during booking
+        bookerRoom: String,   // room number provided during booking
         orderDetails: String, // e.g. "Swiggy order, blue bag"
+        orderPrice: Number,   // cost of the order
         bookedAt: { type: Date, default: Date.now },
+        status: {
+          type: String,
+          enum: ["PENDING", "APPROVED", "REJECTED"],
+          default: "PENDING",
+        },
       },
     ],
   },

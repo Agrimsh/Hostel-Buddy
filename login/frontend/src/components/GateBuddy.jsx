@@ -22,7 +22,7 @@ const GateBuddy = () => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [showBookModal, setShowBookModal] = useState(null); // holds trip being booked
   const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
-  const [bookForm, setBookForm] = useState({ orderDetails: "" });
+  const [bookForm, setBookForm] = useState({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
   const [submitting, setSubmitting] = useState(false);
   const [socket, setSocket] = useState(null);
 
@@ -100,7 +100,7 @@ const GateBuddy = () => {
     }
   };
 
-  // ── Book a trip ────────────────────────────────────────────
+  // ── Book a trip (creates PENDING request) ──────────────────
   const handleBookTrip = async (e) => {
     e.preventDefault();
     if (!showBookModal) return;
@@ -114,9 +114,9 @@ const GateBuddy = () => {
       const data = await res.json();
       if (data.success) {
         socket?.emit("gateTripBooked", data.trip);
-        toast.success(`✅ Booked! ${showBookModal.picker} will pick your order.`);
+        toast.success(`📋 Request sent to ${showBookModal.pickerName || showBookModal.picker}! Check Gate Requests for updates.`);
         setShowBookModal(null);
-        setBookForm({ orderDetails: "" });
+        setBookForm({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
       } else {
         toast.error(data.message);
       }
@@ -150,6 +150,10 @@ const GateBuddy = () => {
 
   // ── Helpers ────────────────────────────────────────────────
   const myActiveTrip = trips.find((t) => t.picker === myUsername);
+  const myActiveBooking = trips.some((t) =>
+    t.bookings?.some((b) => b.booker === myUsername && (b.status === "PENDING" || b.status === "APPROVED"))
+  );
+  
   const timeAgo = (date) => {
     const diff = Math.floor((Date.now() - new Date(date)) / 60000);
     if (diff < 1) return "just now";
@@ -199,11 +203,11 @@ const GateBuddy = () => {
             <button
               className="gb-btn-primary"
               onClick={() => setShowPostModal(true)}
-              disabled={!!myActiveTrip}
-              title={myActiveTrip ? "You already have an active trip" : ""}
+              disabled={!!myActiveTrip || !!myActiveBooking}
+              title={myActiveTrip ? "You already have an active trip" : myActiveBooking ? "You are waiting for a delivery" : ""}
             >
               <span>🧑‍🎒</span>
-              {myActiveTrip ? "You're Live!" : "I'm Going to Gate"}
+              {myActiveTrip ? "You're Live!" : myActiveBooking ? "You have a delivery" : "I'm Going to Gate"}
             </button>
             <button className="gb-btn-secondary" onClick={() => document.getElementById("gb-feed").scrollIntoView({ behavior: "smooth" })}>
               <span>📦</span> Book a Picker
@@ -235,7 +239,10 @@ const GateBuddy = () => {
             <div className="gb-trip-list">
               {trips.map((trip) => {
                 const isMe = trip.picker === myUsername;
-                const iBooked = trip.bookings?.some((b) => b.booker === myUsername);
+                // Find the user's most recent booking for this trip
+                const myBookings = trip.bookings?.filter((b) => b.booker === myUsername) || [];
+                const latestBooking = myBookings.length > 0 ? myBookings[myBookings.length - 1] : null;
+
                 return (
                   <div key={trip._id} className={`gb-trip-card glass-card ${isMe ? "my-trip" : ""}`}>
                     {isMe && <div className="gb-my-badge">Your Trip</div>}
@@ -261,8 +268,10 @@ const GateBuddy = () => {
                         <button className="gb-cancel-btn" onClick={() => handleCancelTrip(trip._id)}>
                           Cancel
                         </button>
-                      ) : iBooked ? (
-                        <button className="gb-booked-btn" disabled>✅ Booked</button>
+                      ) : latestBooking?.status === "APPROVED" ? (
+                        <button className="gb-booked-btn" style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white", borderColor: "transparent" }} disabled>✅ Accepted</button>
+                      ) : latestBooking?.status === "PENDING" ? (
+                        <button className="gb-booked-btn" disabled>🟡 Pending</button>
                       ) : trip.slotsLeft > 0 ? (
                         <button className="gb-book-btn-live" onClick={() => setShowBookModal(trip)}>
                           Book
@@ -372,12 +381,46 @@ const GateBuddy = () => {
 
             <form onSubmit={handleBookTrip} className="gb-form">
               <div className="gb-form-group">
+                <label>Your Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rahul Kumar"
+                  value={bookForm.bookerName}
+                  onChange={(e) => setBookForm({ ...bookForm, bookerName: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Your Room Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. B-105"
+                  value={bookForm.bookerRoom}
+                  onChange={(e) => setBookForm({ ...bookForm, bookerRoom: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Order Price (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 250"
+                  value={bookForm.orderPrice}
+                  onChange={(e) => setBookForm({ ...bookForm, orderPrice: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
                 <label>Order Details</label>
                 <input
                   type="text"
                   placeholder='e.g. "Zomato bag, name: Rahul" or "Amazon parcel"'
                   value={bookForm.orderDetails}
-                  onChange={(e) => setBookForm({ orderDetails: e.target.value })}
+                  onChange={(e) => setBookForm({ ...bookForm, orderDetails: e.target.value })}
                   required
                 />
               </div>
@@ -387,7 +430,7 @@ const GateBuddy = () => {
                   Cancel
                 </button>
                 <button type="submit" className="gb-btn-primary" disabled={submitting}>
-                  {submitting ? "Booking…" : "✅ Confirm Booking"}
+                  {submitting ? "Sending…" : "📋 Send Request"}
                 </button>
               </div>
             </form>

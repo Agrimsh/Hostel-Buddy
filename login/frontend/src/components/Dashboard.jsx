@@ -131,6 +131,15 @@ const Dashboard = () => {
                 <div className="card-arrow">→</div>
               </div>
 
+              <div className="dashboard-card glass-card" onClick={() => navigate('/gate-requests')}>
+                <div className="card-icon gradient-bg-5">📋</div>
+                <div className="card-content">
+                  <h3>Gate Requests</h3>
+                  <p>Approve, reject & track your gate bookings.</p>
+                </div>
+                <div className="card-arrow">→</div>
+              </div>
+
             </div>
           </div>
         </main>
