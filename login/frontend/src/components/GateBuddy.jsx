@@ -157,7 +157,7 @@ const GateBuddy = () => {
   const myActiveBooking = trips.some((t) =>
     t.bookings?.some((b) => b.booker === myUsername && (b.status === "PENDING" || b.status === "APPROVED"))
   );
-  
+
   const timeAgo = (date) => {
     const diff = Math.floor((Date.now() - new Date(date)) / 60000);
     if (diff < 1) return "just now";
@@ -214,11 +214,10 @@ const GateBuddy = () => {
                 }
               }}
             >
-              <span>🧑‍🎒</span>
               {myActiveTrip ? "View My Trip" : "I'm Going to Gate"}
             </button>
-            <button 
-              className={`gb-btn-secondary ${activeTab === "live" ? "active" : ""}`} 
+            <button
+              className={`gb-btn-secondary ${activeTab === "live" ? "active" : ""}`}
               onClick={() => setActiveTab("live")}
             >
               <span>📦</span> Book a Picker
@@ -231,7 +230,7 @@ const GateBuddy = () => {
           <section className="gb-feed-section" id="gb-mytrip" style={{ marginBottom: "2rem" }}>
             <div className="gb-feed-header">
               <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
-                🧑‍🎒 Your Active Trip
+                Your Active Trip
               </h2>
             </div>
             <div className="gb-trip-list">
