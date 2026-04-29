@@ -26,7 +26,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: "*"
+  origin: "*", // Allow all origins (you can restrict this in production)
 }));
 app.use(express.json()); // Parses incoming JSON requests
 
