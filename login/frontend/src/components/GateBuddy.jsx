@@ -1,14 +1,165 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 import "./GateBuddy.css";
+
+// VITE_API_URL already includes /api (e.g. http://localhost:5000/api)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const SOCKET_URL = API_URL.replace("/api", "");
 
 const GateBuddy = () => {
   const navigate = useNavigate();
   const [isDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const myUsername = user.email ? user.email.split("@")[0] : "";
+  const token = localStorage.getItem("token");
+
+  // ── State ──────────────────────────────────────────────────
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [showBookModal, setShowBookModal] = useState(null); // holds trip being booked
+  const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
+  const [bookForm, setBookForm] = useState({ orderDetails: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [socket, setSocket] = useState(null);
+
+  // ── Socket setup ───────────────────────────────────────────
+  useEffect(() => {
+    const s = io(SOCKET_URL);
+    setSocket(s);
+
+    s.on("newGateTrip", (trip) => {
+      setTrips((prev) => [trip, ...prev]);
+      if (trip.picker !== myUsername) {
+        toast.info(`🚪 ${trip.pickerName || trip.picker} is going to gate for ₹${trip.price}!`);
+      }
+    });
+
+    s.on("gateTripUpdated", (updated) => {
+      setTrips((prev) =>
+        updated.status === "active"
+          ? prev.map((t) => (t._id === updated._id ? updated : t))
+          : prev.filter((t) => t._id !== updated._id)
+      );
+    });
+
+    s.on("gateTripRemoved", (tripId) => {
+      setTrips((prev) => prev.filter((t) => t._id !== tripId));
+    });
+
+    return () => s.disconnect();
+  }, [myUsername]);
+
+  // ── Fetch active trips ─────────────────────────────────────
+  const fetchTrips = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/gate/trips`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setTrips(data.trips);
+    } catch {
+      toast.error("Failed to load trips");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchTrips(); }, [fetchTrips]);
+
+  // ── Post a trip ────────────────────────────────────────────
+  const handlePostTrip = async (e) => {
+    e.preventDefault();
+    if (!postForm.price || postForm.price <= 0) {
+      return toast.error("Enter a valid price");
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/gate/trips`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(postForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        socket?.emit("gateTripPosted", data.trip);
+        toast.success("🚪 You're live! Hostelmates have been notified.");
+        setShowPostModal(false);
+        setPostForm({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Book a trip ────────────────────────────────────────────
+  const handleBookTrip = async (e) => {
+    e.preventDefault();
+    if (!showBookModal) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/gate/trips/${showBookModal._id}/book`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(bookForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        socket?.emit("gateTripBooked", data.trip);
+        toast.success(`✅ Booked! ${showBookModal.picker} will pick your order.`);
+        setShowBookModal(null);
+        setBookForm({ orderDetails: "" });
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Cancel my trip ─────────────────────────────────────────
+  const handleCancelTrip = async (tripId) => {
+    try {
+      const res = await fetch(`${API_URL}/gate/trips/${tripId}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Update local state immediately
+        setTrips((prev) => prev.filter((t) => t._id !== tripId));
+        socket?.emit("gateTripCancelled", tripId);
+        toast.success("Trip cancelled successfully");
+      } else {
+        toast.error(data.message || "Failed to cancel trip");
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  // ── Helpers ────────────────────────────────────────────────
+  const myActiveTrip = trips.find((t) => t.picker === myUsername);
+  const timeAgo = (date) => {
+    const diff = Math.floor((Date.now() - new Date(date)) / 60000);
+    if (diff < 1) return "just now";
+    if (diff < 60) return `${diff} min ago`;
+    return `${Math.floor(diff / 60)}h ago`;
+  };
+
+  // ── Render ─────────────────────────────────────────────────
   return (
     <div className={`gatebuddy-wrapper ${isDarkMode ? "dark" : "light"}`}>
-      {/* Ambient background blobs */}
       <div className="gb-blob gb-blob-1" />
       <div className="gb-blob gb-blob-2" />
       <div className="gb-blob gb-blob-3" />
@@ -25,14 +176,13 @@ const GateBuddy = () => {
         <div style={{ width: "80px" }} />
       </header>
 
-      {/* Hero Section */}
       <main className="gb-main">
-        <div className="gb-hero">
 
-          {/* Floating badge */}
+        {/* Hero */}
+        <div className="gb-hero">
           <div className="gb-badge">
             <span className="gb-badge-dot" />
-            Live Picker Feed
+            {trips.length > 0 ? `${trips.length} picker${trips.length > 1 ? "s" : ""} live now` : "No pickers right now"}
           </div>
 
           <h1 className="gb-hero-title">
@@ -41,136 +191,209 @@ const GateBuddy = () => {
           </h1>
 
           <p className="gb-hero-subtitle">
-            Heading to the gate anyway? Post your trip, set your price, and let
-            hostelmates book you to carry their orders back — easy money, zero
-            extra effort.
+            Heading to the gate anyway? Post your trip, set your price, and earn.
+            Or book a hostler already going — your order, delivered to your room.
           </p>
 
-          {/* CTA Buttons */}
           <div className="gb-cta-group">
-            <button className="gb-btn-primary" disabled>
-              <span>🧑‍🎒</span> I'm Going to Gate
+            <button
+              className="gb-btn-primary"
+              onClick={() => setShowPostModal(true)}
+              disabled={!!myActiveTrip}
+              title={myActiveTrip ? "You already have an active trip" : ""}
+            >
+              <span>🧑‍🎒</span>
+              {myActiveTrip ? "You're Live!" : "I'm Going to Gate"}
             </button>
-            <button className="gb-btn-secondary" disabled>
+            <button className="gb-btn-secondary" onClick={() => document.getElementById("gb-feed").scrollIntoView({ behavior: "smooth" })}>
               <span>📦</span> Book a Picker
             </button>
           </div>
-
-          <p className="gb-coming-soon-note">
-            🚀 &nbsp;Launching soon — stay tuned!
-          </p>
         </div>
 
-        {/* --- Live Feed Preview Card --- */}
-        <div className="gb-feed-preview">
-          <div className="gb-feed-label">
-            <span className="gb-badge-dot" style={{ width: 10, height: 10 }} />
-            Live Picker Feed — Preview
+        {/* ── Live Feed ── */}
+        <section className="gb-feed-section" id="gb-feed">
+          <div className="gb-feed-header">
+            <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
+              🔴 Live Picker Feed
+            </h2>
+            <button className="gb-refresh-btn" onClick={fetchTrips}>↻ Refresh</button>
           </div>
 
-          {/* Mock picker cards */}
-          {[
-            { name: "Rahul K.", time: "in 5 mins",  price: 30, slots: 2, avatar: "🧑" },
-            { name: "Priya S.", time: "in 12 mins", price: 20, slots: 3, avatar: "👩" },
-            { name: "Arjun M.", time: "in 20 mins", price: 25, slots: 1, avatar: "👦" },
-          ].map((picker, i) => (
-            <div className="gb-picker-card glass-card" key={i}>
-              <div className="gb-picker-avatar">{picker.avatar}</div>
-              <div className="gb-picker-info">
-                <span className="gb-picker-name">{picker.name}</span>
-                <span className="gb-picker-meta">
-                  🕐 {picker.time} &nbsp;·&nbsp; 🎒 {picker.slots} slot{picker.slots > 1 ? "s" : ""} left
-                </span>
-              </div>
-              <div className="gb-picker-right">
-                <span className="gb-picker-price">₹{picker.price}</span>
-                <button className="gb-book-btn" disabled>Book</button>
-              </div>
+          {loading ? (
+            <div className="gb-empty">
+              <div className="gb-spinner" />
+              <p>Loading trips…</p>
             </div>
-          ))}
-        </div>
-
-        {/* Feature Cards */}
-        <div className="gb-features">
-          <div className="gb-feature-card glass-card">
-            <div className="gb-feature-icon feat-orange">🧑‍🎒</div>
-            <h3>Post Your Trip</h3>
-            <p>Going to the gate? Post it live with your price — get booked instantly.</p>
-          </div>
-
-          <div className="gb-feature-card glass-card">
-            <div className="gb-feature-icon feat-purple">🔔</div>
-            <h3>Instant Notifications</h3>
-            <p>All hostelmates get notified the moment a picker goes live.</p>
-          </div>
-
-          <div className="gb-feature-card glass-card">
-            <div className="gb-feature-icon feat-blue">💸</div>
-            <h3>You Set the Price</h3>
-            <p>Pickers name their own rate — total transparency, no hidden fees.</p>
-          </div>
-
-          <div className="gb-feature-card glass-card">
-            <div className="gb-feature-icon feat-green">✅</div>
-            <h3>One-Tap Booking</h3>
-            <p>See a picker you like? Hit Book — they get notified immediately.</p>
-          </div>
-        </div>
-
-        {/* How It Works */}
-        <section className="gb-how">
-          <h2 className="gb-section-title">How It Works</h2>
-
-          {/* Two columns: Picker side & Booker side */}
-          <div className="gb-two-cols">
-
-            {/* Picker Side */}
-            <div className="gb-col glass-card">
-              <div className="gb-col-header picker-header">
-                <span>🧑‍🎒</span> You're the Picker
-              </div>
-              <div className="gb-col-steps">
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">1</div>
-                  <p>Tap <strong>"I'm Going to Gate"</strong> and set your price & available slots.</p>
-                </div>
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">2</div>
-                  <p>Go live — hostelmates get a push notification instantly.</p>
-                </div>
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">3</div>
-                  <p>Accept bookings, collect orders at the gate, deliver & earn 💰</p>
-                </div>
-              </div>
+          ) : trips.length === 0 ? (
+            <div className="gb-empty">
+              <span className="gb-empty-icon">🚪</span>
+              <p>No one is going to the gate right now.</p>
+              <p className="gb-empty-sub">Be the first to post your trip!</p>
             </div>
+          ) : (
+            <div className="gb-trip-list">
+              {trips.map((trip) => {
+                const isMe = trip.picker === myUsername;
+                const iBooked = trip.bookings?.some((b) => b.booker === myUsername);
+                return (
+                  <div key={trip._id} className={`gb-trip-card glass-card ${isMe ? "my-trip" : ""}`}>
+                    {isMe && <div className="gb-my-badge">Your Trip</div>}
 
-            <div className="gb-col-divider">VS</div>
+                    <div className="gb-trip-left">
+                      <div className="gb-trip-avatar">{(trip.pickerName || trip.picker)[0].toUpperCase()}</div>
+                      <div className="gb-trip-info">
+                        <span className="gb-trip-name">{trip.pickerName || trip.picker}</span>
+                        <span className="gb-trip-time">Room {trip.pickerRoom} · {timeAgo(trip.createdAt)}</span>
+                        {trip.note && <span className="gb-trip-note">"{trip.note}"</span>}
+                      </div>
+                    </div>
 
-            {/* Booker Side */}
-            <div className="gb-col glass-card">
-              <div className="gb-col-header booker-header">
-                <span>📦</span> You're Booking
-              </div>
-              <div className="gb-col-steps">
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">1</div>
-                  <p>Get notified when a hostler posts they're heading to the gate.</p>
-                </div>
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">2</div>
-                  <p>Tap <strong>"Book"</strong> on any available picker and share order details.</p>
-                </div>
-                <div className="gb-mini-step">
-                  <div className="gb-mini-num">3</div>
-                  <p>Sit back — your order arrives at your room door 🚪</p>
-                </div>
-              </div>
+                    <div className="gb-trip-right">
+                      <div className="gb-trip-stats">
+                        <span className="gb-trip-price">₹{trip.price}</span>
+                        <span className="gb-trip-slots">
+                          {trip.slotsLeft} / {trip.slots} slots left
+                        </span>
+                      </div>
+
+                      {isMe ? (
+                        <button className="gb-cancel-btn" onClick={() => handleCancelTrip(trip._id)}>
+                          Cancel
+                        </button>
+                      ) : iBooked ? (
+                        <button className="gb-booked-btn" disabled>✅ Booked</button>
+                      ) : trip.slotsLeft > 0 ? (
+                        <button className="gb-book-btn-live" onClick={() => setShowBookModal(trip)}>
+                          Book
+                        </button>
+                      ) : (
+                        <button className="gb-full-btn" disabled>Full</button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-          </div>
+          )}
         </section>
       </main>
+
+      {/* ── Post Trip Modal ── */}
+      {showPostModal && (
+        <div className="gb-modal-overlay" onClick={() => setShowPostModal(false)}>
+          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="gb-modal-title">🧑‍🎒 I'm Going to Gate</h2>
+            <p className="gb-modal-sub">Set your price and let hostelmates book you.</p>
+
+            <form onSubmit={handlePostTrip} className="gb-form">
+              <div className="gb-form-group">
+                <label>Your Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rahul Kumar"
+                  value={postForm.pickerName}
+                  onChange={(e) => setPostForm({ ...postForm, pickerName: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Your Room Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. A-204"
+                  value={postForm.pickerRoom}
+                  onChange={(e) => setPostForm({ ...postForm, pickerRoom: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Your Price (₹)</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 30"
+                  value={postForm.price}
+                  onChange={(e) => setPostForm({ ...postForm, price: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Available Slots (how many orders you can carry)</label>
+                <div className="gb-slot-picker">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`gb-slot-btn ${postForm.slots === n ? "active" : ""}`}
+                      onClick={() => setPostForm({ ...postForm, slots: n })}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="gb-form-group">
+                <label>Note (optional)</label>
+                <input
+                  type="text"
+                  maxLength={200}
+                  placeholder='e.g. "Leaving in 10 mins, near gate 2"'
+                  value={postForm.note}
+                  onChange={(e) => setPostForm({ ...postForm, note: e.target.value })}
+                />
+              </div>
+
+              <div className="gb-form-actions">
+                <button type="button" className="gb-btn-ghost" onClick={() => setShowPostModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="gb-btn-primary" disabled={submitting}>
+                  {submitting ? "Posting…" : "🚀 Go Live"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Book Trip Modal ── */}
+      {showBookModal && (
+        <div className="gb-modal-overlay" onClick={() => setShowBookModal(null)}>
+          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="gb-modal-title">📦 Book {showBookModal.pickerName || showBookModal.picker}</h2>
+            <p className="gb-modal-sub">
+              They'll pick your order for <strong>₹{showBookModal.price}</strong>. Share your order details below.
+            </p>
+
+            <form onSubmit={handleBookTrip} className="gb-form">
+              <div className="gb-form-group">
+                <label>Order Details</label>
+                <input
+                  type="text"
+                  placeholder='e.g. "Zomato bag, name: Rahul" or "Amazon parcel"'
+                  value={bookForm.orderDetails}
+                  onChange={(e) => setBookForm({ orderDetails: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-actions">
+                <button type="button" className="gb-btn-ghost" onClick={() => setShowBookModal(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="gb-btn-primary" disabled={submitting}>
+                  {submitting ? "Booking…" : "✅ Confirm Booking"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
