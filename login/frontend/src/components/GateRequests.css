@@ -312,6 +312,17 @@
   border-color: rgba(239,68,68,0.35);
 }
 
+.gr-status-arrived {
+  background: rgba(59,130,246,0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59,130,246,0.3);
+}
+.dark .gr-status-arrived {
+  background: rgba(59,130,246,0.15);
+  color: #60a5fa;
+  border-color: rgba(59,130,246,0.35);
+}
+
 /* Order Details */
 .gr-order {
   display: flex;

@@ -99,6 +99,28 @@ const GateRequests = () => {
     }
   };
 
+  // ── Arrive ─────────────────────────────────────────────────
+  const handleArrive = async (tripId, bookingId) => {
+    setActionLoading(bookingId);
+    try {
+      const res = await fetch(`${API_URL}/gate/trips/${tripId}/bookings/${bookingId}/arrive`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("🏠 Order marked as arrived!");
+        fetchRequests();
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error("Failed to mark as arrived");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // ── Helpers ────────────────────────────────────────────────
   const timeAgo = (date) => {
     const diff = Math.floor((Date.now() - new Date(date)) / 60000);
@@ -113,9 +135,10 @@ const GateRequests = () => {
   const pendingCount = incomingRequests.filter((r) => r.status === "PENDING").length;
 
   const statusConfig = {
-    PENDING:  { label: "Pending",  icon: "🟡", cls: "gr-status-pending" },
+    PENDING: { label: "Pending", icon: "🟡", cls: "gr-status-pending" },
     APPROVED: { label: "Approved", icon: "🟢", cls: "gr-status-approved" },
     REJECTED: { label: "Rejected", icon: "🔴", cls: "gr-status-rejected" },
+    ARRIVED: { label: "Arrived", icon: "🏠", cls: "gr-status-arrived" },
   };
 
   return (
@@ -224,7 +247,7 @@ const GateRequests = () => {
                       </div>
                     )}
 
-                    {/* Actions — only for picker on PENDING */}
+                    {/* Actions — only for picker on PENDING or APPROVED */}
                     {tab === "incoming" && req.status === "PENDING" && (
                       <div className="gr-actions">
                         <button
@@ -240,6 +263,29 @@ const GateRequests = () => {
                           disabled={isActing}
                         >
                           {isActing ? "…" : "❌ Reject"}
+                        </button>
+                      </div>
+                    )}
+
+                    {tab === "incoming" && req.status === "APPROVED" && (
+                      <div className="gr-actions">
+                        <button
+                          className="gr-arrive"
+                          onClick={() => handleArrive(req.tripId, req.bookingId)}
+                          disabled={isActing}
+                          style={{
+                            flex: 1,
+                            padding: "10px",
+                            borderRadius: "10px",
+                            border: "none",
+                            background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                            color: "white",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          {isActing ? "…" : "🏠 Mark as Arrived"}
                         </button>
                       </div>
                     )}

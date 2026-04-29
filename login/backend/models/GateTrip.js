@@ -60,7 +60,7 @@ const gateTripSchema = new mongoose.Schema(
         bookedAt: { type: Date, default: Date.now },
         status: {
           type: String,
-          enum: ["PENDING", "APPROVED", "REJECTED"],
+          enum: ["PENDING", "APPROVED", "REJECTED", "ARRIVED"],
           default: "PENDING",
         },
       },

@@ -87,12 +87,48 @@ const tripBookedEmail = (picker, booker, orderDetails, price) => `
 
       <div style="background: #fef3c7; border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid #fbbf24;">
         <p style="color: #92400e; font-size: 0.88rem; margin: 0; font-weight: 500;">
-          ⏰ <strong>Head out soon!</strong> Your hostelmate is counting on you. Collect the order and deliver it to their room.
+          ⏰ <strong>Head out soon!</strong> Your hostelmate is counting on you. Collect the order and bring it back to your room so they can collect it.
         </p>
       </div>
 
       <div style="text-align: center; margin: 28px 0 12px;">
         <a href="https://hostel-buddy373.vercel.app/gate-buddy" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 1rem; box-shadow: 0 6px 20px rgba(16,185,129,0.35);">
+          🚪 View Gate Buddy
+        </a>
+      </div>
+
+      <p style="color: #94a3b8; font-size: 0.8rem; text-align: center; margin-top: 24px;">
+        Hostel Buddy · Your Campus Companion 🏠
+      </p>
+    </div>
+  </div>
+`;
+
+const tripArrivedEmail = (picker, booker, room) => `
+  <div style="font-family: 'Inter', Arial, sans-serif; max-width: 560px; margin: auto; background: #f8faff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 32px 32px 24px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 8px;">🏠</div>
+      <h1 style="color: white; margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px;">Your Order has Arrived!</h1>
+      <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 0.95rem;">Please collect it from the picker's room</p>
+    </div>
+    <div style="padding: 28px 32px;">
+      <p style="color: #475569; font-size: 1rem; margin-top: 0;">Hey ${booker}! 🎉</p>
+      <p style="color: #475569; font-size: 1rem; line-height: 1.6;">
+        <strong style="color: #1e293b;">${picker}</strong> has arrived back at the hostel with your order.
+      </p>
+
+      <div style="background: #eff6ff; border-radius: 12px; padding: 20px 24px; margin: 20px 0; border: 1px solid #bfdbfe;">
+        <p style="color: #1e40af; font-size: 1.1rem; margin: 0; font-weight: 600; text-align: center;">
+          📍 Collect from: <strong>Room ${room}</strong>
+        </p>
+      </div>
+
+      <p style="color: #475569; font-size: 0.95rem; line-height: 1.5; text-align: center;">
+        Please go to their room to collect your order and make the payment as agreed.
+      </p>
+
+      <div style="text-align: center; margin: 28px 0 12px;">
+        <a href="https://hostel-buddy373.vercel.app/gate-buddy" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 1rem; box-shadow: 0 6px 20px rgba(59,130,246,0.35);">
           🚪 View Gate Buddy
         </a>
       </div>
@@ -148,7 +184,7 @@ const postTrip = async (req, res) => {
             email: u.email,
             subject: `🚪 ${pickerName} is going to the gate for ₹${price} — Book now!`,
             message: tripPostedEmail(pickerName, pickerRoom, price, slots, note),
-          }).catch(() => {}) // Don't fail if one email fails
+          }).catch(() => { }) // Don't fail if one email fails
         );
         await Promise.all(emailPromises);
         console.log(`📧 Gate trip notification sent to ${allUsers.length} hostelmates`);
@@ -348,6 +384,50 @@ const rejectBooking = async (req, res) => {
   }
 };
 
+// PATCH /api/gate/trips/:id/bookings/:bookingId/arrive — picker marks a booking as arrived
+const arriveBooking = async (req, res) => {
+  try {
+    const pickerEmail = req.user.email;
+    const trip = await GateTrip.findById(req.params.id);
+
+    if (!trip) return res.status(404).json({ success: false, message: "Trip not found" });
+    if (trip.pickerEmail !== pickerEmail) {
+      return res.status(403).json({ success: false, message: "Only the picker can mark bookings as arrived" });
+    }
+
+    const booking = trip.bookings.id(req.params.bookingId);
+    if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
+    if (booking.status !== "APPROVED") {
+      return res.status(400).json({ success: false, message: `Cannot mark ${booking.status.toLowerCase()} booking as arrived. Must be approved first.` });
+    }
+
+    booking.status = "ARRIVED";
+    // Complete the overall trip so it disappears from the live feed
+    trip.status = "completed";
+    await trip.save();
+    res.status(200).json({ success: true, trip });
+
+    // ── Fire-and-forget: Notify booker of arrival ─────────────────
+    (async () => {
+      try {
+        const subject = `🏠 Your order has arrived at Room ${trip.pickerRoom}!`;
+        await sendEmail({
+          email: booking.bookerEmail,
+          subject,
+          message: tripArrivedEmail(trip.pickerName, booking.booker, trip.pickerRoom)
+        });
+        console.log(`📧 Arrival notification sent to booker ${booking.booker}`);
+      } catch (err) {
+        console.error("Failed to send arrival email:", err.message);
+      }
+    })();
+    // ────────────────────────────────────────────────────────────────
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to mark booking as arrived" });
+  }
+};
+
 // GET /api/gate/requests — get all bookings relevant to the logged-in user
 const getMyRequests = async (req, res) => {
   try {
@@ -469,4 +549,4 @@ const cancelTrip = async (req, res) => {
   }
 };
 
-module.exports = { getActiveTrips, postTrip, bookTrip, cancelTrip, approveBooking, rejectBooking, getMyRequests };
+module.exports = { getActiveTrips, postTrip, bookTrip, cancelTrip, approveBooking, rejectBooking, arriveBooking, getMyRequests };
