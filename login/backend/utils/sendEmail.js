@@ -3,35 +3,43 @@ const nodemailer = require("nodemailer");
 /**
  * sendEmail.js
  *
- * Primary:  Resend HTTP API (works on Render — uses HTTPS, no SMTP ports needed)
+ * Primary:  Brevo HTTP API (works on Render — uses HTTPS, no SMTP ports needed)
  * Fallback: Nodemailer SMTP (for local development)
  *
- * Set RESEND_API_KEY in environment to use Resend.
+ * Set BREVO_API_KEY in environment to use Brevo.
  * If not set, falls back to nodemailer with SMTP_MAIL / SMTP_PASSWORD.
  */
 
-// ── Resend (HTTP API — works everywhere, including Render free tier) ──
-const sendViaResend = async ({ email, subject, message }) => {
-  const res = await fetch("https://api.resend.com/emails", {
+// ── Brevo (HTTP API — works everywhere, including Render free tier) ──
+const sendViaBrevo = async ({ email, subject, message }) => {
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "api-key": process.env.BREVO_API_KEY,
       "Content-Type": "application/json",
+      "Accept": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM || "Hostel Buddy <onboarding@resend.dev>",
-      to: [email],
-      subject,
-      html: message,
+      sender: {
+        name: "Hostel Buddy",
+        email: process.env.SMTP_MAIL || "hostelbuddy374@gmail.com",
+      },
+      to: [
+        {
+          email: email,
+        },
+      ],
+      subject: subject,
+      htmlContent: message,
     }),
   });
 
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(`Resend API error (${res.status}): ${errBody}`);
+    throw new Error(`Brevo API error (${res.status}): ${errBody}`);
   }
 
-  console.log(`✉️ Email sent via Resend to ${email}`);
+  console.log(`✉️ Email sent via Brevo to ${email}`);
 };
 
 // ── Nodemailer SMTP (local dev fallback) ──────────────────────────────
@@ -62,8 +70,8 @@ const sendViaNodemailer = async ({ email, subject, message }) => {
 // ── Main export ───────────────────────────────────────────────────────
 const sendEmail = async ({ email, subject, message }) => {
   try {
-    if (process.env.RESEND_API_KEY) {
-      await sendViaResend({ email, subject, message });
+    if (process.env.BREVO_API_KEY) {
+      await sendViaBrevo({ email, subject, message });
     } else {
       await sendViaNodemailer({ email, subject, message });
     }
