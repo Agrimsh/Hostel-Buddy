@@ -7,6 +7,7 @@ import MarketPlace from "./components/MarketPlace";
 import Inbox from "./components/Inbox";
 import NotificationListener from "./components/NotificationListener";
 import GateBuddy from "./components/GateBuddy";
+import GateRequests from "./components/GateRequests";
 
 // A simple PrivateRoute component to protect the dashboard
 const PrivateRoute = ({ children }) => {
@@ -27,37 +28,45 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <PrivateRoute>
               <Dashboard />
             </PrivateRoute>
-          } 
+          }
         />
-        <Route 
-          path="/marketplace" 
+        <Route
+          path="/marketplace"
           element={
             <PrivateRoute>
               <MarketPlace />
             </PrivateRoute>
-          } 
+          }
         />
-        <Route 
-          path="/inbox" 
+        <Route
+          path="/inbox"
           element={
             <PrivateRoute>
               <Inbox />
             </PrivateRoute>
-          } 
+          }
         />
-        <Route 
-          path="/gate-buddy" 
+        <Route
+          path="/gate-buddy"
           element={
             <PrivateRoute>
               <GateBuddy />
             </PrivateRoute>
-          } 
+          }
+        />
+        <Route
+          path="/gate-requests"
+          element={
+            <PrivateRoute>
+              <GateRequests />
+            </PrivateRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

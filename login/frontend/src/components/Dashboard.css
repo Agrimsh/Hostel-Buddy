@@ -245,6 +245,7 @@
 .gradient-bg-2 { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
 .gradient-bg-3 { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
 .gradient-bg-4 { background: linear-gradient(135deg, #667eea, #764ba2); }
+.gradient-bg-5 { background: linear-gradient(135deg, #f59e0b, #f97316); }
 
 .card-content {
   flex: 1;

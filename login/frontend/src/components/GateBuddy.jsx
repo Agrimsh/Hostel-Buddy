@@ -22,9 +22,11 @@ const GateBuddy = () => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [showBookModal, setShowBookModal] = useState(null); // holds trip being booked
   const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
-  const [bookForm, setBookForm] = useState({ orderDetails: "" });
+  const [bookForm, setBookForm] = useState({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
   const [submitting, setSubmitting] = useState(false);
   const [socket, setSocket] = useState(null);
+
+  const [activeTab, setActiveTab] = useState("live"); // "live" | "myTrip"
 
   // ── Socket setup ───────────────────────────────────────────
   useEffect(() => {
@@ -90,6 +92,7 @@ const GateBuddy = () => {
         toast.success("🚪 You're live! Hostelmates have been notified.");
         setShowPostModal(false);
         setPostForm({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
+        setActiveTab("myTrip"); // switch to my trip after posting
       } else {
         toast.error(data.message);
       }
@@ -100,7 +103,7 @@ const GateBuddy = () => {
     }
   };
 
-  // ── Book a trip ────────────────────────────────────────────
+  // ── Book a trip (creates PENDING request) ──────────────────
   const handleBookTrip = async (e) => {
     e.preventDefault();
     if (!showBookModal) return;
@@ -114,9 +117,9 @@ const GateBuddy = () => {
       const data = await res.json();
       if (data.success) {
         socket?.emit("gateTripBooked", data.trip);
-        toast.success(`✅ Booked! ${showBookModal.picker} will pick your order.`);
+        toast.success(`📋 Request sent to ${showBookModal.pickerName || showBookModal.picker}! Check Gate Requests for updates.`);
         setShowBookModal(null);
-        setBookForm({ orderDetails: "" });
+        setBookForm({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
       } else {
         toast.error(data.message);
       }
@@ -140,6 +143,7 @@ const GateBuddy = () => {
         setTrips((prev) => prev.filter((t) => t._id !== tripId));
         socket?.emit("gateTripCancelled", tripId);
         toast.success("Trip cancelled successfully");
+        setActiveTab("live"); // go back to live feed if cancelled
       } else {
         toast.error(data.message || "Failed to cancel trip");
       }
@@ -150,6 +154,10 @@ const GateBuddy = () => {
 
   // ── Helpers ────────────────────────────────────────────────
   const myActiveTrip = trips.find((t) => t.picker === myUsername);
+  const myActiveBooking = trips.some((t) =>
+    t.bookings?.some((b) => b.booker === myUsername && (b.status === "PENDING" || b.status === "APPROVED"))
+  );
+
   const timeAgo = (date) => {
     const diff = Math.floor((Date.now() - new Date(date)) / 60000);
     if (diff < 1) return "just now";
@@ -192,91 +200,132 @@ const GateBuddy = () => {
 
           <p className="gb-hero-subtitle">
             Heading to the gate anyway? Post your trip, set your price, and earn.
-            Or book a hostler already going — your order, delivered to your room.
+            Or book a hostler already going — pick the order from picker's room
           </p>
 
           <div className="gb-cta-group">
             <button
-              className="gb-btn-primary"
-              onClick={() => setShowPostModal(true)}
-              disabled={!!myActiveTrip}
-              title={myActiveTrip ? "You already have an active trip" : ""}
+              className={`gb-btn-primary ${activeTab === "myTrip" ? "active" : ""}`}
+              onClick={() => {
+                if (myActiveTrip) {
+                  setActiveTab("myTrip");
+                } else {
+                  setShowPostModal(true);
+                }
+              }}
             >
-              <span>🧑‍🎒</span>
-              {myActiveTrip ? "You're Live!" : "I'm Going to Gate"}
+              {myActiveTrip ? "View My Trip" : "I'm Going to Gate"}
             </button>
-            <button className="gb-btn-secondary" onClick={() => document.getElementById("gb-feed").scrollIntoView({ behavior: "smooth" })}>
+            <button
+              className={`gb-btn-secondary ${activeTab === "live" ? "active" : ""}`}
+              onClick={() => setActiveTab("live")}
+            >
               <span>📦</span> Book a Picker
             </button>
           </div>
         </div>
 
-        {/* ── Live Feed ── */}
-        <section className="gb-feed-section" id="gb-feed">
-          <div className="gb-feed-header">
-            <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
-              🔴 Live Picker Feed
-            </h2>
-            <button className="gb-refresh-btn" onClick={fetchTrips}>↻ Refresh</button>
-          </div>
-
-          {loading ? (
-            <div className="gb-empty">
-              <div className="gb-spinner" />
-              <p>Loading trips…</p>
+        {/* ── My Trip Section ── */}
+        {activeTab === "myTrip" && myActiveTrip && (
+          <section className="gb-feed-section" id="gb-mytrip" style={{ marginBottom: "2rem" }}>
+            <div className="gb-feed-header">
+              <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
+                Your Active Trip
+              </h2>
             </div>
-          ) : trips.length === 0 ? (
-            <div className="gb-empty">
-              <span className="gb-empty-icon">🚪</span>
-              <p>No one is going to the gate right now.</p>
-              <p className="gb-empty-sub">Be the first to post your trip!</p>
-            </div>
-          ) : (
             <div className="gb-trip-list">
-              {trips.map((trip) => {
-                const isMe = trip.picker === myUsername;
-                const iBooked = trip.bookings?.some((b) => b.booker === myUsername);
-                return (
-                  <div key={trip._id} className={`gb-trip-card glass-card ${isMe ? "my-trip" : ""}`}>
-                    {isMe && <div className="gb-my-badge">Your Trip</div>}
-
-                    <div className="gb-trip-left">
-                      <div className="gb-trip-avatar">{(trip.pickerName || trip.picker)[0].toUpperCase()}</div>
-                      <div className="gb-trip-info">
-                        <span className="gb-trip-name">{trip.pickerName || trip.picker}</span>
-                        <span className="gb-trip-time">Room {trip.pickerRoom} · {timeAgo(trip.createdAt)}</span>
-                        {trip.note && <span className="gb-trip-note">"{trip.note}"</span>}
-                      </div>
-                    </div>
-
-                    <div className="gb-trip-right">
-                      <div className="gb-trip-stats">
-                        <span className="gb-trip-price">₹{trip.price}</span>
-                        <span className="gb-trip-slots">
-                          {trip.slotsLeft} / {trip.slots} slots left
-                        </span>
-                      </div>
-
-                      {isMe ? (
-                        <button className="gb-cancel-btn" onClick={() => handleCancelTrip(trip._id)}>
-                          Cancel
-                        </button>
-                      ) : iBooked ? (
-                        <button className="gb-booked-btn" disabled>✅ Booked</button>
-                      ) : trip.slotsLeft > 0 ? (
-                        <button className="gb-book-btn-live" onClick={() => setShowBookModal(trip)}>
-                          Book
-                        </button>
-                      ) : (
-                        <button className="gb-full-btn" disabled>Full</button>
-                      )}
-                    </div>
+              <div className="gb-trip-card glass-card my-trip">
+                <div className="gb-my-badge">Your Trip</div>
+                <div className="gb-trip-left">
+                  <div className="gb-trip-avatar">{(myActiveTrip.pickerName || myActiveTrip.picker)[0].toUpperCase()}</div>
+                  <div className="gb-trip-info">
+                    <span className="gb-trip-name">{myActiveTrip.pickerName || myActiveTrip.picker}</span>
+                    <span className="gb-trip-time">Room {myActiveTrip.pickerRoom} · {timeAgo(myActiveTrip.createdAt)}</span>
+                    {myActiveTrip.note && <span className="gb-trip-note">"{myActiveTrip.note}"</span>}
                   </div>
-                );
-              })}
+                </div>
+                <div className="gb-trip-right">
+                  <div className="gb-trip-stats">
+                    <span className="gb-trip-price">₹{myActiveTrip.price}</span>
+                    <span className="gb-trip-slots">
+                      {myActiveTrip.slotsLeft} / {myActiveTrip.slots} slots left
+                    </span>
+                  </div>
+                  <button className="gb-cancel-btn" onClick={() => handleCancelTrip(myActiveTrip._id)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </section>
+          </section>
+        )}
+
+        {/* ── Live Feed ── */}
+        {activeTab === "live" && (
+          <section className="gb-feed-section" id="gb-feed">
+            <div className="gb-feed-header">
+              <h2 className="gb-section-title" style={{ marginBottom: 0 }}>
+                Live Picker Feed
+              </h2>
+              <button className="gb-refresh-btn" onClick={fetchTrips}>↻ Refresh</button>
+            </div>
+
+            {loading ? (
+              <div className="gb-empty">
+                <div className="gb-spinner" />
+                <p>Loading trips…</p>
+              </div>
+            ) : trips.filter(t => t.picker !== myUsername).length === 0 ? (
+              <div className="gb-empty">
+                <span className="gb-empty-icon">🚪</span>
+                <p>No other pickers are going to the gate right now.</p>
+                <p className="gb-empty-sub">Be the first to post your trip!</p>
+              </div>
+            ) : (
+              <div className="gb-trip-list">
+                {trips.filter(t => t.picker !== myUsername).map((trip) => {
+                  // Find the user's most recent booking for this trip
+                  const myBookings = trip.bookings?.filter((b) => b.booker === myUsername) || [];
+                  const latestBooking = myBookings.length > 0 ? myBookings[myBookings.length - 1] : null;
+
+                  return (
+                    <div key={trip._id} className="gb-trip-card glass-card">
+                      <div className="gb-trip-left">
+                        <div className="gb-trip-avatar">{(trip.pickerName || trip.picker)[0].toUpperCase()}</div>
+                        <div className="gb-trip-info">
+                          <span className="gb-trip-name">{trip.pickerName || trip.picker}</span>
+                          <span className="gb-trip-time">Room {trip.pickerRoom} · {timeAgo(trip.createdAt)}</span>
+                          {trip.note && <span className="gb-trip-note">"{trip.note}"</span>}
+                        </div>
+                      </div>
+
+                      <div className="gb-trip-right">
+                        <div className="gb-trip-stats">
+                          <span className="gb-trip-price">₹{trip.price}</span>
+                          <span className="gb-trip-slots">
+                            {trip.slotsLeft} / {trip.slots} slots left
+                          </span>
+                        </div>
+
+                        {latestBooking?.status === "APPROVED" ? (
+                          <button className="gb-booked-btn" style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white", borderColor: "transparent" }} disabled>✅ Accepted</button>
+                        ) : latestBooking?.status === "PENDING" ? (
+                          <button className="gb-booked-btn" disabled>🟡 Pending</button>
+                        ) : trip.slotsLeft > 0 ? (
+                          <button className="gb-book-btn-live" onClick={() => setShowBookModal(trip)}>
+                            Book
+                          </button>
+                        ) : (
+                          <button className="gb-full-btn" disabled>Full</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
       </main>
 
       {/* ── Post Trip Modal ── */}
@@ -285,6 +334,16 @@ const GateBuddy = () => {
           <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="gb-modal-title">🧑‍🎒 I'm Going to Gate</h2>
             <p className="gb-modal-sub">Set your price and let hostelmates book you.</p>
+
+            <div style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1.2rem", textAlign: "left", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+              <strong style={{ display: "block", marginBottom: "6px" }}>⚠️ Disclaimer: Please post genuine outgoing trips only.</strong>
+              <strong style={{ color: "inherit", opacity: 0.9 }}>How it works:</strong>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0, opacity: 0.9 }}>
+                <li>Post your trip and accept or decline booking requests from gate requests section.</li>
+                <li>When you reach your room with the order, press the "Arrived" button.</li>
+                <li>The booker will come to your room to pick up their order.</li>
+              </ul>
+            </div>
 
             <form onSubmit={handlePostTrip} className="gb-form">
               <div className="gb-form-group">
@@ -370,14 +429,57 @@ const GateBuddy = () => {
               They'll pick your order for <strong>₹{showBookModal.price}</strong>. Share your order details below.
             </p>
 
+            <div style={{ backgroundColor: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1.2rem", border: "1px solid rgba(59, 130, 246, 0.2)", textAlign: "left" }}>
+              <strong style={{ color: "inherit", opacity: 0.9 }}>How it works:</strong>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0, opacity: 0.9 }}>
+                <li>Wait for the picker to accept your request and collect your order.</li>
+                <li>Once the picker arrives, go to their room to pick up your order.</li>
+                <li>Keep cash/UPI ready for the picker (Order Price + ₹{showBookModal.price} fee).</li>
+              </ul>
+            </div>
+
             <form onSubmit={handleBookTrip} className="gb-form">
+              <div className="gb-form-group">
+                <label>Your Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rahul Kumar"
+                  value={bookForm.bookerName}
+                  onChange={(e) => setBookForm({ ...bookForm, bookerName: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Your Room Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. B-105"
+                  value={bookForm.bookerRoom}
+                  onChange={(e) => setBookForm({ ...bookForm, bookerRoom: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Order Price (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 250"
+                  value={bookForm.orderPrice}
+                  onChange={(e) => setBookForm({ ...bookForm, orderPrice: e.target.value })}
+                  required
+                />
+              </div>
+
               <div className="gb-form-group">
                 <label>Order Details</label>
                 <input
                   type="text"
                   placeholder='e.g. "Zomato bag, name: Rahul" or "Amazon parcel"'
                   value={bookForm.orderDetails}
-                  onChange={(e) => setBookForm({ orderDetails: e.target.value })}
+                  onChange={(e) => setBookForm({ ...bookForm, orderDetails: e.target.value })}
                   required
                 />
               </div>
@@ -387,7 +489,7 @@ const GateBuddy = () => {
                   Cancel
                 </button>
                 <button type="submit" className="gb-btn-primary" disabled={submitting}>
-                  {submitting ? "Booking…" : "✅ Confirm Booking"}
+                  {submitting ? "Sending…" : "📋 Send Request"}
                 </button>
               </div>
             </form>
