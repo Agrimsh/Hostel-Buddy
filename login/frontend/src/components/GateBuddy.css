@@ -389,10 +389,11 @@
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(6px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 200;
-  padding: 1rem;
+  padding: 3rem 1rem;
+  overflow-y: auto;
   animation: fadeIn 0.2s ease;
 }
 
@@ -405,6 +406,7 @@
   width: 100%;
   max-width: 480px;
   padding: 2.2rem;
+  margin: 0 auto;
   animation: slideUp 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
 }
 
@@ -430,7 +432,19 @@
 .dark .gb-modal-sub  { color: #94a3b8; }
 
 /* ---- Form ---- */
-.gb-form { display: flex; flex-direction: column; gap: 1.4rem; }
+.gb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  /* Reset index.css global form styles */
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
 
 .gb-form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
@@ -799,4 +813,12 @@
   .gb-request-actions { flex-wrap: wrap; justify-content: stretch; }
   .gb-approve-btn, .gb-reject-btn { flex: 1; justify-content: center; }
   .gb-status-badge { margin-top: 0.5rem; }
+  
+  /* Modal responsive tweaks */
+  .gb-modal-overlay {
+    padding: 1rem;
+  }
+  .gb-modal {
+    padding: 1.5rem;
+  }
 }
