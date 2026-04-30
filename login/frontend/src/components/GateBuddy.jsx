@@ -200,7 +200,7 @@ const GateBuddy = () => {
 
           <p className="gb-hero-subtitle">
             Heading to the gate anyway? Post your trip, set your price, and earn.
-            Or book a hostler already going — your order, delivered to your room.
+            Or book a hostler already going — pick the order from picker's room
           </p>
 
           <div className="gb-cta-group">
@@ -335,6 +335,16 @@ const GateBuddy = () => {
             <h2 className="gb-modal-title">🧑‍🎒 I'm Going to Gate</h2>
             <p className="gb-modal-sub">Set your price and let hostelmates book you.</p>
 
+            <div style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1.2rem", textAlign: "left", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+              <strong style={{ display: "block", marginBottom: "6px" }}>⚠️ Disclaimer: Please post genuine outgoing trips only.</strong>
+              <strong style={{ color: "inherit", opacity: 0.9 }}>How it works:</strong>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0, opacity: 0.9 }}>
+                <li>Post your trip and accept or decline booking requests from gate requests section.</li>
+                <li>When you reach your room with the order, press the "Arrived" button.</li>
+                <li>The booker will come to your room to pick up their order.</li>
+              </ul>
+            </div>
+
             <form onSubmit={handlePostTrip} className="gb-form">
               <div className="gb-form-group">
                 <label>Your Name</label>
@@ -418,6 +428,15 @@ const GateBuddy = () => {
             <p className="gb-modal-sub">
               They'll pick your order for <strong>₹{showBookModal.price}</strong>. Share your order details below.
             </p>
+
+            <div style={{ backgroundColor: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1.2rem", border: "1px solid rgba(59, 130, 246, 0.2)", textAlign: "left" }}>
+              <strong style={{ color: "inherit", opacity: 0.9 }}>How it works:</strong>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0, opacity: 0.9 }}>
+                <li>Wait for the picker to accept your request and collect your order.</li>
+                <li>Once the picker arrives, go to their room to pick up your order.</li>
+                <li>Keep cash/UPI ready for the picker (Order Price + ₹{showBookModal.price} fee).</li>
+              </ul>
+            </div>
 
             <form onSubmit={handleBookTrip} className="gb-form">
               <div className="gb-form-group">

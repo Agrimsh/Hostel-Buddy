@@ -57,43 +57,43 @@ const tripPostedEmail = (pickerName, pickerRoom, price, slots, note) => `
 
 const tripBookedEmail = (picker, booker, orderDetails, price) => `
   <div style="font-family: 'Inter', Arial, sans-serif; max-width: 560px; margin: auto; background: #f8faff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 32px 32px 24px; text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 8px;">✅</div>
-      <h1 style="color: white; margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px;">You've Been Booked!</h1>
-      <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 0.95rem;">Someone just booked your gate trip</p>
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 32px 32px 24px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 8px;">📋</div>
+      <h1 style="color: white; margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px;">New Booking Request!</h1>
+      <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 0.95rem;">Someone wants to book your gate trip</p>
     </div>
     <div style="padding: 28px 32px;">
-      <p style="color: #475569; font-size: 1rem; margin-top: 0;">Hey ${picker}! 🎉</p>
+      <p style="color: #475569; font-size: 1rem; margin-top: 0;">Hey ${picker}! 👋</p>
       <p style="color: #475569; font-size: 1rem; line-height: 1.6;">
-        <strong style="color: #1e293b;">${booker}</strong> has booked your gate trip. Head to the gate, grab their order, and earn <strong style="color: #10b981;">₹${price}</strong>!
+        <strong style="color: #1e293b;">${booker}</strong> has requested to book your gate trip for <strong style="color: #f59e0b;">₹${price}</strong>. Please review and <strong>accept or decline</strong> the request from the Gate Requests section.
       </p>
 
       <div style="background: white; border-radius: 12px; padding: 20px 24px; margin: 20px 0; border: 1px solid #e2e8f0;">
         <p style="color: #94a3b8; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px;">Order Details</p>
-        <p style="color: #1e293b; font-size: 1rem; font-weight: 600; margin: 0; background: #f1f5f9; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #10b981;">
+        <p style="color: #1e293b; font-size: 1rem; font-weight: 600; margin: 0; background: #f1f5f9; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #f59e0b;">
           ${orderDetails || "No additional details provided"}
         </p>
         <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
           <tr>
-            <td style="color: #94a3b8; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">Booked By</td>
+            <td style="color: #94a3b8; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">Requested By</td>
             <td style="color: #1e293b; font-weight: 700; text-align: right;">${booker}</td>
           </tr>
           <tr>
-            <td style="color: #94a3b8; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">You Earn</td>
-            <td style="color: #10b981; font-weight: 800; font-size: 1.1rem; text-align: right;">₹${price}</td>
+            <td style="color: #94a3b8; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">You'll Earn</td>
+            <td style="color: #f59e0b; font-weight: 800; font-size: 1.1rem; text-align: right;">₹${price}</td>
           </tr>
         </table>
       </div>
 
       <div style="background: #fef3c7; border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid #fbbf24;">
         <p style="color: #92400e; font-size: 0.88rem; margin: 0; font-weight: 500;">
-          ⏰ <strong>Head out soon!</strong> Your hostelmate is counting on you. Collect the order and bring it back to your room so they can collect it.
+          ⏳ <strong>Action Required:</strong> Go to Gate Requests to accept or decline this booking. The booker is waiting for your response!
         </p>
       </div>
 
       <div style="text-align: center; margin: 28px 0 12px;">
-        <a href="https://hostel-buddy373.vercel.app/gate-buddy" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 1rem; box-shadow: 0 6px 20px rgba(16,185,129,0.35);">
-          🚪 View Gate Buddy
+        <a href="https://hostel-buddy373.vercel.app/gate-requests" style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 1rem; box-shadow: 0 6px 20px rgba(245,158,11,0.35);">
+          📋 Review Request in Gate Requests
         </a>
       </div>
 
