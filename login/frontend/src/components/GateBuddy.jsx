@@ -193,10 +193,6 @@ const GateBuddy = () => {
   // ── Render ─────────────────────────────────────────────────
   return (
     <div className={`gatebuddy-wrapper ${isDarkMode ? "dark" : "light"}`}>
-      <div className="gb-blob gb-blob-1" />
-      <div className="gb-blob gb-blob-2" />
-      <div className="gb-blob gb-blob-3" />
-
       {/* Header */}
       <header className="gb-header glass">
         <button className="gb-back-btn" onClick={() => navigate("/dashboard")}>
