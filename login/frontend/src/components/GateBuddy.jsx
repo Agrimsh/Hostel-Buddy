@@ -21,7 +21,7 @@ const GateBuddy = () => {
   const [loading, setLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
   const [showBookModal, setShowBookModal] = useState(null); // holds trip being booked
-  const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
+  const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "", upiId: "" });
   const [bookForm, setBookForm] = useState({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
   const [submitting, setSubmitting] = useState(false);
   const [socket, setSocket] = useState(null);
@@ -73,6 +73,22 @@ const GateBuddy = () => {
 
   useEffect(() => { fetchTrips(); }, [fetchTrips]);
 
+  // ── Prefill UPI ID from profile ────────────────────────────
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await fetch(`${API_URL}/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && data.profile.upiId) {
+          setPostForm((prev) => ({ ...prev, upiId: data.profile.upiId }));
+        }
+      } catch {}
+    };
+    loadProfile();
+  }, [token]);
+
   // ── Post a trip ────────────────────────────────────────────
   const handlePostTrip = async (e) => {
     e.preventDefault();
@@ -81,6 +97,15 @@ const GateBuddy = () => {
     }
     setSubmitting(true);
     try {
+      // Save UPI ID to user profile (fire-and-forget)
+      if (postForm.upiId) {
+        fetch(`${API_URL}/profile/upi`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ upiId: postForm.upiId }),
+        }).catch(() => {});
+      }
+
       const res = await fetch(`${API_URL}/gate/trips`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -91,8 +116,8 @@ const GateBuddy = () => {
         socket?.emit("gateTripPosted", data.trip);
         toast.success("🚪 You're live! Hostelmates have been notified.");
         setShowPostModal(false);
-        setPostForm({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "" });
-        setActiveTab("myTrip"); // switch to my trip after posting
+        setPostForm((prev) => ({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "", upiId: prev.upiId }));
+        setActiveTab("myTrip");
       } else {
         toast.error(data.message);
       }
@@ -168,10 +193,6 @@ const GateBuddy = () => {
   // ── Render ─────────────────────────────────────────────────
   return (
     <div className={`gatebuddy-wrapper ${isDarkMode ? "dark" : "light"}`}>
-      <div className="gb-blob gb-blob-1" />
-      <div className="gb-blob gb-blob-2" />
-      <div className="gb-blob gb-blob-3" />
-
       {/* Header */}
       <header className="gb-header glass">
         <button className="gb-back-btn" onClick={() => navigate("/dashboard")}>
@@ -405,6 +426,20 @@ const GateBuddy = () => {
                   value={postForm.note}
                   onChange={(e) => setPostForm({ ...postForm, note: e.target.value })}
                 />
+              </div>
+
+              <div className="gb-form-group">
+                <label>Your UPI ID (for receiving payment)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 9876543210@paytm or name@upi"
+                  value={postForm.upiId}
+                  onChange={(e) => setPostForm({ ...postForm, upiId: e.target.value })}
+                  required
+                />
+                <span style={{ fontSize: "0.75rem", opacity: 0.6, marginTop: "4px", display: "block" }}>
+                  Bookers will use this to pay you via UPI QR code
+                </span>
               </div>
 
               <div className="gb-form-actions">
