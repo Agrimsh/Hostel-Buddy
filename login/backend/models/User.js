@@ -30,6 +30,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Array of Firebase Cloud Messaging device tokens for push notifications
+    fcmTokens: [
+      {
+        type: String,
+      },
+    ],
+    // UPI ID for Gate Buddy payment (e.g. "user@upi" or "9876543210@paytm")
+    upiId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   { timestamps: true }
 );

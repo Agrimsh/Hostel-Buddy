@@ -7,8 +7,26 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const gateRoutes = require("./routes/gateRoutes");
+const fcmRoutes = require("./routes/fcmRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const Message = require("./models/Message");
+const admin = require("firebase-admin");
+
+// ── Initialize Firebase Admin SDK ────────────────────────────────────────────
+// Store the entire service account JSON as an env var: FIREBASE_SERVICE_ACCOUNT
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("🔥 Firebase Admin SDK initialized successfully");
+  } catch (error) {
+    console.error("🔥 Firebase Admin init error:", error.message);
+  }
+} else {
+  console.warn("⚠️ FIREBASE_SERVICE_ACCOUNT not set. Push notifications disabled.");
+}
 
 // Initialize app
 const app = express();
@@ -41,6 +59,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/gate", gateRoutes);
+app.use("/api/fcm", fcmRoutes);
+app.use("/api/profile", require("./routes/profileRoutes"));
 
 // Example of a protected route using authMiddleware
 app.get("/api/dashboard", protect, (req, res) => {
@@ -57,7 +77,7 @@ app.get("/api/ping", (req, res) => {
 });
 
 const User = require("./models/User");
-const sendEmail = require("./utils/sendEmail");
+const { sendPush } = require("./utils/sendPush");
 
 // ─── Socket.io Real-Time Chat ────────────────────────────────────────────────
 io.on("connection", (socket) => {
@@ -88,33 +108,23 @@ io.on("connection", (socket) => {
       // Also emit back to sender's room (for multi-tab sync)
       io.to(`user_${sender}`).emit("receiveMessage", newMessage);
 
-      // --- Send Email Notification to Receiver ---
+      // --- Send Push Notification to Receiver (instead of email) ---
       // Fire and forget so we don't block the socket response
       (async () => {
         try {
-          // receiver is usually just the username (part before @). Let's find their full email.
+          // receiver is usually just the username (part before @). Find their full email.
           const receiverUser = await User.findOne({ email: new RegExp(`^${receiver}@`, "i") });
           if (receiverUser) {
-            const subject = `1 new message from ${sender}`;
-            const emailBody = `
-              <h2>Hostel Buddy Notification</h2>
-              <p>You have <strong>1 new message</strong> from <strong>${sender}</strong>.</p>
-              <p><strong>Item:</strong> ${itemTitle || "Unknown Item"}</p>
-              <p><strong>Message:</strong></p>
-              <blockquote style="border-left: 4px solid #ccc; padding-left: 10px; margin-left: 0; font-style: italic;">
-                ${message}
-              </blockquote>
-              <br/>
-              <p><a href="https://hostel-buddy373.vercel.app/inbox" style="padding: 10px 15px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Go to Inbox to Reply</a></p>
-            `;
-            await sendEmail({
-              email: receiverUser.email,
-              subject,
-              message: emailBody,
-            });
+            await sendPush(
+              receiverUser.email,
+              `💬 New message from ${sender}`,
+              `${message.substring(0, 100)}${message.length > 100 ? "..." : ""}`,
+              { type: "chat", itemId: itemId || "", itemTitle: itemTitle || "" },
+              "email"
+            );
           }
-        } catch (emailErr) {
-          console.error("Error sending email notification:", emailErr);
+        } catch (pushErr) {
+          console.error("Error sending push notification:", pushErr);
         }
       })();
       // -------------------------------------------
