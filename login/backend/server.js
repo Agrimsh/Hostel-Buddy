@@ -32,6 +32,11 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 const app = express();
 const server = http.createServer(app);
 
+// Ping route
+app.get("/ping", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // Socket.io setup with CORS
 const io = new Server(server, {
   cors: {
