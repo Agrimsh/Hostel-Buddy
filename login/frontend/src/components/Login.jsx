@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+const COLLEGE_DOMAIN = "@galgotiasuniversity.ac.in";
 
 const Login = () => {
   const [step, setStep] = useState(1);
@@ -11,10 +13,25 @@ const Login = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+  // Auto-redirect if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
   // Handle Step 1: Send OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Frontend validation: college email only
+    if (!email.toLowerCase().endsWith(COLLEGE_DOMAIN)) {
+      setError("Please use your Galgotias University email (e.g., Name.ID@galgotiasuniversity.ac.in)");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -80,13 +97,13 @@ const Login = () => {
         <form onSubmit={handleSendOtp}>
           <div className="form-group">
             <h1 className="title">Welcome</h1>
-            <p className="subtitle">Enter your email to receive a one-time password</p>
+            <p className="subtitle">Sign in with your Galgotias University email</p>
 
-            <label className="label">Email</label>
+            <label className="label">College Email</label>
             <input
               type="email"
               className="input"
-              placeholder="e.g., john@gmail.com"
+              placeholder="e.g., rahul.23SCSE1011348@galgotiasuniversity.ac.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -125,3 +142,4 @@ const Login = () => {
 };
 
 export default Login;
+

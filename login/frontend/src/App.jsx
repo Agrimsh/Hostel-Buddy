@@ -7,7 +7,6 @@ import MarketPlace from "./components/MarketPlace";
 import Inbox from "./components/Inbox";
 import NotificationListener from "./components/NotificationListener";
 import GateBuddy from "./components/GateBuddy";
-import GateRequests from "./components/GateRequests";
 import useFCM from "./hooks/useFCM.jsx";
 
 // A simple PrivateRoute component to protect the dashboard
@@ -65,14 +64,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/gate-requests"
-          element={
-            <PrivateRoute>
-              <GateRequests />
-            </PrivateRoute>
-          }
-        />
+
       </Routes>
     </BrowserRouter>
   );
