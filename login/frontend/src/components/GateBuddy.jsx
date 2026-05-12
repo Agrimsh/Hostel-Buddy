@@ -90,7 +90,7 @@ const GateBuddy = () => {
         if (data.success && data.profile.upiId) {
           setPostForm((prev) => ({ ...prev, upiId: data.profile.upiId }));
         }
-      } catch {}
+      } catch { }
     };
     if (token) loadProfile();
   }, [token]);
@@ -139,7 +139,7 @@ const GateBuddy = () => {
           method: "PATCH",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ upiId: postForm.upiId }),
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       const res = await fetch(`${API_URL}/gate/trips`, {
@@ -195,18 +195,18 @@ const GateBuddy = () => {
   const handleCancelTrip = async (tripId, e) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to cancel your trip?")) return;
-    
+
     try {
       console.log("Cancelling trip:", tripId);
       const res = await fetch(`${API_URL}/gate/trips/${tripId}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       console.log("Cancel response status:", res.status);
       const data = await res.json();
       console.log("Cancel response data:", data);
-      
+
       if (data.success) {
         setTrips((prev) => prev.filter((t) => t._id !== tripId));
         socket?.emit("gateTripCancelled", tripId);
@@ -382,7 +382,7 @@ const GateBuddy = () => {
       <header className="gb-header glass">
         <button className="gb-back-btn" onClick={() => navigate("/dashboard")}>← Back</button>
         <div className="gb-header-brand">
-          <span className="gb-brand-icon">🚪</span>
+
           <span className="gb-brand-name">Gate Buddy</span>
         </div>
         <div style={{ width: "80px" }}>
@@ -512,7 +512,7 @@ const GateBuddy = () => {
                 <button className="gb-cancel-btn" onClick={(e) => handleCancelTrip(myActiveTrip._id, e)}>Cancel Trip</button>
               </div>
             </div>
-            
+
             <div style={{ marginTop: "2rem" }}>
               <p style={{ textAlign: "center", color: "#64748b" }}>Manage incoming pickup requests in the <strong>My Requests</strong> tab.</p>
             </div>
@@ -609,7 +609,7 @@ const GateBuddy = () => {
       {showPostModal && (
         <div className="gb-modal-overlay" onClick={() => setShowPostModal(false)}>
           <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="gb-modal-title">🧑‍🎒 I'm Going to Gate</h2>
+            <h2 className="gb-modal-title"> I'm Going to Gate</h2>
             <form onSubmit={handlePostTrip} className="gb-form">
               <div className="gb-form-group">
                 <label>Your Name</label>
