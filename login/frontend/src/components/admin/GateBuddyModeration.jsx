@@ -107,7 +107,7 @@ const GateBuddyModeration = () => {
   ];
 
   return (
-    <div style={{ padding: "1.5rem" }}>
+    <div>
       <h2 style={{ marginBottom: "1.5rem", color: "#0f172a" }}>Gate Buddy Moderation</h2>
       
       {loading ? (
