@@ -191,23 +191,32 @@ const GateBuddy = () => {
     }
   };
 
-  const handleCancelTrip = async (tripId) => {
+  const handleCancelTrip = async (tripId, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to cancel your trip?")) return;
+    
     try {
+      console.log("Cancelling trip:", tripId);
       const res = await fetch(`${API_URL}/gate/trips/${tripId}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      console.log("Cancel response status:", res.status);
       const data = await res.json();
+      console.log("Cancel response data:", data);
+      
       if (data.success) {
         setTrips((prev) => prev.filter((t) => t._id !== tripId));
         socket?.emit("gateTripCancelled", tripId);
         toast.success("Trip cancelled successfully");
         setActiveTab("live");
       } else {
-        toast.error(data.message);
+        toast.error(`Backend Error: ${data.message}`);
       }
-    } catch {
-      toast.error("Something went wrong.");
+    } catch (err) {
+      console.error("Cancel Trip Catch Error:", err);
+      toast.error(`Network Error: ${err.message}`);
     }
   };
 
@@ -402,28 +411,28 @@ const GateBuddy = () => {
         {/* Navigation Tabs */}
         <div className="gb-cta-group" style={{ marginBottom: "2rem" }}>
           <button
-            className={`gb-btn-secondary ${activeTab === "live" ? "active" : ""}`}
+            className={activeTab === "live" ? "gb-btn-primary active" : "gb-btn-secondary"}
             onClick={() => setActiveTab("live")}
             style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
           >
             <span style={{ fontWeight: "600" }}>📦 Live Feed</span>
-            <span style={{ fontSize: "0.7rem", opacity: 0.7, marginTop: "4px", fontWeight: "normal" }}>Find a picker</span>
+            <span style={{ fontSize: "0.7rem", opacity: activeTab === "live" ? 0.9 : 0.7, marginTop: "4px", fontWeight: "normal" }}>Find a picker</span>
           </button>
           <button
-            className={`gb-btn-primary ${activeTab === "myTrip" ? "active" : ""}`}
+            className={activeTab === "myTrip" ? "gb-btn-primary active" : "gb-btn-secondary"}
             onClick={() => myActiveTrip ? setActiveTab("myTrip") : setShowPostModal(true)}
             style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
           >
             <span style={{ fontWeight: "600" }}>{myActiveTrip ? "View My Trip" : "I'm Going to Gate"}</span>
-            <span style={{ fontSize: "0.7rem", opacity: 0.8, marginTop: "4px", fontWeight: "normal" }}>{myActiveTrip ? "Manage your trip" : "Post your trip"}</span>
+            <span style={{ fontSize: "0.7rem", opacity: activeTab === "myTrip" ? 0.9 : 0.8, marginTop: "4px", fontWeight: "normal" }}>{myActiveTrip ? "Manage your trip" : "Post your trip"}</span>
           </button>
           <button
-            className={`gb-btn-secondary ${activeTab === "requests" ? "active" : ""}`}
+            className={activeTab === "requests" ? "gb-btn-primary active" : "gb-btn-secondary"}
             onClick={() => setActiveTab("requests")}
             style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
           >
             <span style={{ fontWeight: "600" }}>📋 My Requests</span>
-            <span style={{ fontSize: "0.7rem", opacity: 0.7, marginTop: "4px", fontWeight: "normal" }}>Track & chat</span>
+            <span style={{ fontSize: "0.7rem", opacity: activeTab === "requests" ? 0.9 : 0.7, marginTop: "4px", fontWeight: "normal" }}>Track & chat</span>
             {pendingCount > 0 && <span className="gr-header-badge" style={{ position: "absolute", top: "-5px", right: "-5px", fontSize: "0.7rem", padding: "2px 6px" }}>{pendingCount}</span>}
           </button>
         </div>
@@ -494,12 +503,12 @@ const GateBuddy = () => {
                   <span className="gb-trip-time">Room {myActiveTrip.pickerRoom} · {timeAgo(myActiveTrip.createdAt)}</span>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginTop: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginTop: "0.5rem", position: "relative", zIndex: 1 }}>
                 <div className="gb-trip-stats" style={{ flexDirection: "row", alignItems: "center", gap: "1rem" }}>
                   <span className="gb-trip-price">₹{myActiveTrip.price}</span>
                   <span className="gb-trip-slots">{myActiveTrip.slotsLeft} / {myActiveTrip.slots} slots</span>
                 </div>
-                <button className="gb-cancel-btn" onClick={() => handleCancelTrip(myActiveTrip._id)}>Cancel Trip</button>
+                <button className="gb-cancel-btn" onClick={(e) => handleCancelTrip(myActiveTrip._id, e)}>Cancel Trip</button>
               </div>
             </div>
             

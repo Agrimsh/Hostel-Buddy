@@ -42,6 +42,24 @@ const userSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    // Role-based access: student (default), admin, warden
+    role: {
+      type: String,
+      enum: ["student", "admin", "warden"],
+      default: "student",
+    },
+    // Whether the user is banned from using the platform
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    // Trust score (0-100) calculated from activity metrics
+    trustScore: {
+      type: Number,
+      default: 100,
+      min: 0,
+      max: 100,
+    },
   },
   { timestamps: true }
 );

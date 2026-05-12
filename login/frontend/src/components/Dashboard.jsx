@@ -114,6 +114,23 @@ const Dashboard = () => {
           </div>
 
           <div className="header-actions">
+            {user.role === "admin" && (
+              <button 
+                onClick={() => navigate("/admin")} 
+                style={{
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginRight: "0.5rem"
+                }}
+              >
+                Admin Panel
+              </button>
+            )}
             <button
               className="theme-toggle"
               onClick={() => setIsDarkMode(!isDarkMode)}

@@ -9,65 +9,136 @@ import NotificationListener from "./components/NotificationListener";
 import GateBuddy from "./components/GateBuddy";
 import useFCM from "./hooks/useFCM.jsx";
 
-// A simple PrivateRoute component to protect the dashboard
-const PrivateRoute = ({ children }) => {
+// Admin imports
+import AdminLayout from "./components/admin/AdminLayout";
+import UsersModeration from "./components/admin/UsersModeration";
+import MarketplaceModeration from "./components/admin/MarketplaceModeration";
+import GateBuddyModeration from "./components/admin/GateBuddyModeration";
+
+// Role-based route wrapper
+const AdminRoute = ({ children }) => {
   const token = localStorage.getItem("token");
+  const userStr = localStorage.getItem("user");
 
-  // Request push notification permission and register FCM token
-  useFCM();
+  if (!token || !userStr) return <Navigate to="/" replace />;
 
-  return token ? (
-    <>
-      <NotificationListener />
-      {children}
-    </>
-  ) : (
-    <Navigate to="/" />
-  );
+  try {
+    const user = JSON.parse(userStr);
+    if (user.role !== "admin" && user.role !== "warden") {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return children;
+  } catch (error) {
+    return <Navigate to="/" replace />;
+  }
 };
 
-function App() {
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/" replace />;
+  return children;
+};
+
+// Top-level component using hooks
+const AppContent = () => {
+  // Call hooks unconditionally
+  useFCM();
+
   return (
-    <BrowserRouter>
-      <ToastContainer />
+    <>
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+      <NotificationListener />
+
       <Routes>
         <Route path="/" element={<Login />} />
+
+        {/* Regular User Routes */}
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Dashboard />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/marketplace"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <MarketPlace />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/inbox"
-          element={
-            <PrivateRoute>
-              <Inbox />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/gate-buddy"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <GateBuddy />
-            </PrivateRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <Inbox />
+            </ProtectedRoute>
           }
         />
 
+        {/* Admin Portal Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Navigate to="/admin/users" replace />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <UsersModeration />
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/marketplace"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <MarketplaceModeration />
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/gate-buddy"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <GateBuddyModeration />
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+
+        {/* Catch all unhandled routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
-}
+};
 
 export default App;

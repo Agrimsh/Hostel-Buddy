@@ -79,8 +79,12 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         // Store some basic user info if needed
         localStorage.setItem("user", JSON.stringify(data.user));
-        // Redirect to dashboard
-        navigate("/dashboard");
+        // Redirect based on role — admins/wardens go to admin portal
+        if (data.user.role === "admin" || data.user.role === "warden") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         setError(data.message || "Invalid OTP.");
       }

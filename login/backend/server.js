@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const gateRoutes = require("./routes/gateRoutes");
 const fcmRoutes = require("./routes/fcmRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const Message = require("./models/Message");
 const admin = require("firebase-admin");
@@ -61,6 +62,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/gate", gateRoutes);
 app.use("/api/fcm", fcmRoutes);
 app.use("/api/profile", require("./routes/profileRoutes"));
+app.use("/api/admin", adminRoutes);
 
 // Example of a protected route using authMiddleware
 app.get("/api/dashboard", protect, (req, res) => {

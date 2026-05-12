@@ -100,7 +100,7 @@ const verifyOtp = async (req, res) => {
 
     // 5. Generate JWT token (valid for 30 days)
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role || "student" },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
@@ -113,6 +113,7 @@ const verifyOtp = async (req, res) => {
         id: user._id,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role || "student",
       },
     });
   } catch (error) {
