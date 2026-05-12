@@ -4,13 +4,8 @@ import DataTable from "./shared/DataTable";
 import Badge from "./shared/Badge";
 import { fetchStudents, banStudent as apiBan, unbanStudent as apiUnban } from "../../lib/adminApi";
 import { toast } from "react-toastify";
+import { formatName } from "../../utils/formatName";
 import "./UsersModeration.css";
-
-const nameFromEmail = (email) => {
-  if (!email) return "Unknown";
-  const parts = email.split("@")[0].split(".");
-  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-};
 
 const UsersModeration = () => {
   const [users, setUsers] = useState([]);
@@ -55,10 +50,10 @@ const UsersModeration = () => {
     {
       key: "name",
       header: "User",
-      accessor: (row) => nameFromEmail(row.email),
+      accessor: (row) => formatName(row.email),
       render: (row) => (
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontWeight: 600 }}>{nameFromEmail(row.email)}</span>
+          <span style={{ fontWeight: 600 }}>{formatName(row.email)}</span>
           <span style={{ color: "#64748b", fontSize: "0.8rem" }}>{row.email}</span>
         </div>
       ),

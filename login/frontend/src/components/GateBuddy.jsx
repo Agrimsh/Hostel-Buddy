@@ -3,8 +3,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import QRCode from "qrcode";
+import { formatName } from "../utils/formatName";
 import "./GateBuddy.css";
-import "./GateRequests.css"; // Ensure styles for chat/requests carry over
+import "./GateRequests.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const SOCKET_URL = API_URL.replace("/api", "");
@@ -26,8 +27,8 @@ const GateBuddy = () => {
   const [trips, setTrips] = useState([]);
   const [showPostModal, setShowPostModal] = useState(false);
   const [showBookModal, setShowBookModal] = useState(null);
-  const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: "", pickerRoom: "", upiId: "" });
-  const [bookForm, setBookForm] = useState({ orderDetails: "", bookerName: "", bookerRoom: "", orderPrice: "" });
+  const [postForm, setPostForm] = useState({ price: "", slots: 1, note: "", pickerName: formatName(user.email), pickerRoom: "", upiId: "" });
+  const [bookForm, setBookForm] = useState({ orderDetails: "", bookerName: formatName(user.email), bookerRoom: "", orderPrice: "" });
   const [submitting, setSubmitting] = useState(false);
 
   // ── State: Requests ────────────────────────────────────────

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { formatName } from '../utils/formatName';
 import './ChatWindow.css';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
@@ -105,10 +106,10 @@ const ChatWindow = ({ item, currentUser, onClose }) => {
         <div className="chat-header">
           <div className="chat-header-info">
             <div className="chat-avatar">
-              {seller.charAt(0).toUpperCase()}
+              {formatName(seller).charAt(0).toUpperCase()}
             </div>
             <div>
-              <h3 className="chat-recipient-name">{seller}</h3>
+              <h3 className="chat-recipient-name">{formatName(seller)}</h3>
               <p className="chat-item-label">{item.title} · ₹{item.price}</p>
             </div>
           </div>

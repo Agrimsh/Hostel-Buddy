@@ -150,7 +150,10 @@ const Dashboard = () => {
           <div className="welcome-section">
             <h1 className="gradient-text">Hey, Buddy 👋</h1>
             <p className="dashboard-subtitle">
-              Welcome back, <span className="highlight-text">{user.email ? user.email.split('@')[0] : "User"}</span>
+              Welcome back, <span className="highlight-text">{user.email ? (() => {
+                const namePart = user.email.split('@')[0].split('.')[0];
+                return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+              })() : "User"}</span>
             </p>
           </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Users, ShoppingBag, DoorOpen, LogOut, Menu, X, ChevronLeft, Shield } from "lucide-react";
+import { formatName } from "../../utils/formatName";
 import "./AdminLayout.css";
 
 const navItems = [
@@ -16,7 +17,7 @@ const AdminLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const username = user.email ? user.email.split("@")[0] : "Admin";
+  const username = user.email ? formatName(user.email) : "Admin";
 
   // Close mobile nav on route change
   useEffect(() => {

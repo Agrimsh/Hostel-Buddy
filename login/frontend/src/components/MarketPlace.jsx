@@ -4,7 +4,8 @@ import imageCompression from 'browser-image-compression';
 import './MarketPlace.css';
 import ChatWindow from './ChatWindow';
 import SellerInbox from './SellerInbox';
-import './Dashboard.css'; // Import to reuse theme utilities
+import { formatName } from '../utils/formatName';
+import './Dashboard.css';
 
 const MarketPlace = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const MarketPlace = () => {
     price: '',
     category: 'Books',
     condition: 'New',
-    name: '',
+    name: formatName(JSON.parse(localStorage.getItem("user") || '{}').email),
     roomNumber: '',
   });
   const [editItem, setEditItem] = useState(null);

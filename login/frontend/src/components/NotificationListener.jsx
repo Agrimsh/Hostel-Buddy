@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
+import { formatName } from "../utils/formatName";
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://hostel-buddy-ag0x.onrender.com';
 
@@ -31,8 +32,9 @@ const NotificationListener = () => {
           if (msg.sender !== currentUser) {
             // Only show toast if not currently on inbox (or show it anyway, but this is a simple check)
             // If they are on inbox, they might be talking to this person, so showing a toast might be redundant, 
+            // If they are on inbox, they might be talking to this person, so showing a toast might be redundant, 
             // but we'll show it anyway unless they want it fully suppressed.
-            toast.info(`New message from ${msg.sender}: ${msg.message}`, {
+            toast.info(`New message from ${formatName(msg.sender)}: ${msg.message}`, {
               position: "top-right",
               autoClose: 5000,
               hideProgressBar: false,
