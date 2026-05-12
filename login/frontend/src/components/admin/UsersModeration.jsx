@@ -90,7 +90,9 @@ const UsersModeration = () => {
       sortable: false,
       render: (row) => (
         <div style={{ display: "flex", gap: "0.5rem" }}>
-          {row.isBanned ? (
+          {row.role === "admin" ? (
+            <span style={{ fontSize: "0.85rem", color: "#94a3b8", fontStyle: "italic" }}>No actions</span>
+          ) : row.isBanned ? (
             <button
               style={{ padding: "0.3rem 0.6rem", border: "none", borderRadius: "4px", background: "#10b981", color: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem" }}
               onClick={(e) => { e.stopPropagation(); handleUnban(row._id); }}

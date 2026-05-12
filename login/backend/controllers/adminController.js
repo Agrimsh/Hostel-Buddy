@@ -10,7 +10,7 @@ const GateTrip = require("../models/GateTrip");
 const getStudents = async (req, res) => {
   try {
     const { search, page = 1, limit = 20 } = req.query;
-    const query = { role: "student" };
+    const query = {};
 
     if (search) {
       query.$or = [
