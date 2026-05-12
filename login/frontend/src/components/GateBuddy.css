@@ -341,7 +341,7 @@
   cursor: default;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .gb-trip-card::before {
@@ -386,17 +386,18 @@
 
 .gb-my-badge {
   position: absolute;
-  top: -10px;
-  left: 16px;
+  top: -12px;
+  left: 20px;
   font-size: 0.7rem;
   font-weight: 700;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #fff;
-  padding: 0.2rem 0.7rem;
+  padding: 0.3rem 0.9rem;
   border-radius: 999px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  z-index: 1;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .gb-trip-left {

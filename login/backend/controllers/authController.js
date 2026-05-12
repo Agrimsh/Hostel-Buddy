@@ -17,11 +17,11 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    // 1. Validate domain (e.g., must be a .edu or .ac.in domain)
-    if (!email.toLowerCase().endsWith("gmail.com")) {
+    // 1. Validate domain — only Galgotias University emails allowed
+    if (!email.toLowerCase().endsWith("@galgotiasuniversity.ac.in")) {
       return res
         .status(400)
-        .json({ success: false, message: "Only valid gmail ids" });
+        .json({ success: false, message: "Only Galgotias University email IDs are allowed (e.g., name@galgotiasuniversity.ac.in)" });
     }
 
     // 2. See if user exists, else create new one
@@ -98,11 +98,11 @@ const verifyOtp = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    // 5. Generate JWT token (valid for 7 days)
+    // 5. Generate JWT token (valid for 30 days)
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role || "student" },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30d" }
     );
 
     res.status(200).json({
@@ -113,6 +113,7 @@ const verifyOtp = async (req, res) => {
         id: user._id,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role || "student",
       },
     });
   } catch (error) {

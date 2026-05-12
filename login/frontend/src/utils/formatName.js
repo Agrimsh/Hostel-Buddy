@@ -1,0 +1,1 @@
+export const formatName = (emailOrUsername) => { if (!emailOrUsername) return "Unknown"; const namePart = emailOrUsername.split("@")[0].split(".")[0]; return namePart.charAt(0).toUpperCase() + namePart.slice(1); };

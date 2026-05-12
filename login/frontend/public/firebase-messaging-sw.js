@@ -51,7 +51,7 @@ self.addEventListener("notificationclick", (event) => {
     case "booking_rejected":
     case "trip_cancelled":
     case "order_arrived":
-      url = "/gate-requests";
+      url = "/gate-buddy";
       break;
     case "chat":
       url = "/inbox";

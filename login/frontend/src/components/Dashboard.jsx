@@ -114,6 +114,23 @@ const Dashboard = () => {
           </div>
 
           <div className="header-actions">
+            {user.role === "admin" && (
+              <button 
+                onClick={() => navigate("/admin")} 
+                style={{
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginRight: "0.5rem"
+                }}
+              >
+                Admin Panel
+              </button>
+            )}
             <button
               className="theme-toggle"
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -133,7 +150,10 @@ const Dashboard = () => {
           <div className="welcome-section">
             <h1 className="gradient-text">Hey, Buddy 👋</h1>
             <p className="dashboard-subtitle">
-              Welcome back, <span className="highlight-text">{user.email ? user.email.split('@')[0] : "User"}</span>
+              Welcome back, <span className="highlight-text">{user.email ? (() => {
+                const namePart = user.email.split('@')[0].split('.')[0];
+                return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+              })() : "User"}</span>
             </p>
           </div>
 
@@ -177,14 +197,7 @@ const Dashboard = () => {
                 <div className="card-arrow">→</div>
               </div>
 
-              <div className="dashboard-card glass-card" onClick={() => navigate('/gate-requests')}>
-                <div className="card-icon gradient-bg-5">📋</div>
-                <div className="card-content">
-                  <h3>Gate Requests</h3>
-                  <p>Approve, reject & track your gate bookings.</p>
-                </div>
-                <div className="card-arrow">→</div>
-              </div>
+
 
             </div>
           </div>

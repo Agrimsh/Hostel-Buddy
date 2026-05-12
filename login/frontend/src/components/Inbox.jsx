@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import { formatName } from '../utils/formatName';
 import './Inbox.css';
 import './Dashboard.css';
 
@@ -230,11 +231,11 @@ const Inbox = () => {
                     onClick={() => selectConversation(conv)}
                   >
                     <div className="inbox-conv-avatar">
-                      {conv.otherUser.charAt(0).toUpperCase()}
+                      {formatName(conv.otherUser).charAt(0).toUpperCase()}
                     </div>
                     <div className="inbox-conv-info">
                       <div className="inbox-conv-top">
-                        <span className="inbox-conv-name">{conv.otherUser}</span>
+                        <span className="inbox-conv-name">{formatName(conv.otherUser)}</span>
                         <span className="inbox-conv-time">{formatTime(conv.lastTimestamp)}</span>
                       </div>
                       <p className="inbox-conv-item-title">{conv.itemTitle || 'Item'}</p>
@@ -264,10 +265,10 @@ const Inbox = () => {
                     ←
                   </button>
                   <div className="inbox-chat-avatar">
-                    {activeConv.otherUser.charAt(0).toUpperCase()}
+                    {formatName(activeConv.otherUser).charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h4 className="inbox-chat-name">{activeConv.otherUser}</h4>
+                    <h4 className="inbox-chat-name">{formatName(activeConv.otherUser)}</h4>
                     <p className="inbox-chat-item-label">{activeConv.itemTitle || 'Item'}</p>
                   </div>
                 </div>

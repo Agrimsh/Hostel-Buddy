@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { formatName } from '../utils/formatName';
 import './SellerInbox.css';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
@@ -183,11 +184,11 @@ const SellerInbox = ({ item, currentUser, onClose }) => {
                   onClick={() => setActiveBuyer(conv.otherUser)}
                 >
                   <div className="si-buyer-avatar">
-                    {conv.otherUser.charAt(0).toUpperCase()}
+                    {formatName(conv.otherUser).charAt(0).toUpperCase()}
                   </div>
                   <div className="si-buyer-info">
                     <div className="si-buyer-top">
-                      <span className="si-buyer-name">{conv.otherUser}</span>
+                      <span className="si-buyer-name">{formatName(conv.otherUser)}</span>
                       <span className="si-buyer-time">{formatTime(conv.lastTimestamp)}</span>
                     </div>
                     <p className="si-buyer-preview">{conv.lastMessage}</p>
@@ -209,9 +210,9 @@ const SellerInbox = ({ item, currentUser, onClose }) => {
                 <div className="si-chat-top-bar">
                   <button className="si-back-btn" onClick={() => setActiveBuyer(null)}>←</button>
                   <div className="si-chat-top-avatar">
-                    {activeBuyer.charAt(0).toUpperCase()}
+                    {formatName(activeBuyer).charAt(0).toUpperCase()}
                   </div>
-                  <h4>{activeBuyer}</h4>
+                  <h4>{formatName(activeBuyer)}</h4>
                 </div>
 
                 <div className="si-messages">
