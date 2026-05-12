@@ -35,12 +35,14 @@ const sendPush = async (userIdentifier, title, body, data = {}, identifierType =
     for (const [key, value] of Object.entries(data)) {
       stringData[key] = String(value);
     }
+    
+    // Add title and body to the data payload
+    // Sending ONLY data prevents FCM from auto-generating a background notification,
+    // allowing our service worker to handle it manually exactly how we want.
+    stringData.title = String(title);
+    stringData.body = String(body);
 
     const message = {
-      notification: {
-        title,
-        body,
-      },
       data: stringData,
       tokens: user.fcmTokens,
     };

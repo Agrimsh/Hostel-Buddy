@@ -150,8 +150,17 @@
 }
 
 @keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.4); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.4);
+  }
 }
 
 .gb-hero-title {
@@ -321,7 +330,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---- Trip List (matches .card-grid layout) ---- */
@@ -347,7 +358,10 @@
 .gb-trip-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
   z-index: 0;
   border-radius: 20px;
@@ -735,25 +749,70 @@
 
 /* ---- Animations (same as Dashboard) ---- */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---- Responsive (matches Dashboard) ---- */
 @media (max-width: 768px) {
-  .gb-header { padding: 1rem 1.5rem; }
-  .gb-hero-title { font-size: 2.5rem; }
-  .gb-trip-list { grid-template-columns: 1fr; }
-  .gb-trip-card { flex-direction: column; align-items: flex-start; }
-  .gb-trip-right { width: 100%; justify-content: space-between; }
-  .gb-trip-stats { flex-direction: row; align-items: center; gap: 0.8rem; }
-  .gb-feed-header { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .gb-header {
+    padding: 1rem 1.5rem;
+  }
 
-  .gb-modal-overlay { padding: 1rem; }
-  .gb-modal { padding: 1.5rem; }
+  .gb-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .gb-trip-list {
+    grid-template-columns: 1fr;
+  }
+
+  .gb-trip-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gb-trip-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .gb-trip-stats {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .gb-feed-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .gb-modal-overlay {
+    padding: 1rem;
+  }
+
+  .gb-modal {
+    padding: 1.5rem;
+  }
 }

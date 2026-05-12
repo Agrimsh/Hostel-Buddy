@@ -22,11 +22,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log("[firebase-messaging-sw.js] Background message received:", payload);
 
-  const notificationTitle = payload.notification?.title || "Hostel Buddy";
+  // Since we removed 'notification' from backend payload, we read from 'data'
+  const notificationTitle = payload.data?.title || "Hostel Buddy";
   const notificationOptions = {
-    body: payload.notification?.body || "You have a new notification",
-    icon: "/bg.jpeg",
-    badge: "/bg.jpeg",
+    body: payload.data?.body || "You have a new notification",
+    icon: "/logo.png",
+    badge: "/logo.png",
     data: payload.data || {},
     tag: payload.data?.type || "general",
     requireInteraction: true,
