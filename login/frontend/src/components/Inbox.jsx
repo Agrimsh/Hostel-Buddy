@@ -196,13 +196,6 @@ const Inbox = () => {
             <h2>Inbox</h2>
           </div>
           <div className="header-actions">
-            <button
-              className="theme-toggle"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              aria-label="Toggle Dark Mode"
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
           </div>
         </header>
 

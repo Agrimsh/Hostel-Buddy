@@ -608,7 +608,7 @@ const GateBuddy = () => {
       {/* Post Modal */}
       {showPostModal && (
         <div className="gb-modal-overlay" onClick={() => setShowPostModal(false)}>
-          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
+          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px", width: "90%", maxHeight: "85vh", overflowY: "auto", padding: "1.5rem" }}>
             <h2 className="gb-modal-title"> I'm Going to Gate</h2>
             <form onSubmit={handlePostTrip} className="gb-form">
               <div className="gb-form-group">
@@ -651,7 +651,7 @@ const GateBuddy = () => {
       {/* Book Modal */}
       {showBookModal && (
         <div className="gb-modal-overlay" onClick={() => setShowBookModal(null)}>
-          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()}>
+          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px", width: "90%", maxHeight: "85vh", overflowY: "auto", padding: "1.5rem" }}>
             <h2 className="gb-modal-title">📦 Book {showBookModal.pickerName || showBookModal.picker}</h2>
             <form onSubmit={handleBookTrip} className="gb-form">
               <div className="gb-form-group">
@@ -744,7 +744,7 @@ const GateBuddy = () => {
       {/* ── Guidelines Modal ── */}
       {showGuidelines && (
         <div className="gb-modal-overlay" onClick={() => setShowGuidelines(false)}>
-          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
+          <div className="gb-modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px", width: "90%", maxHeight: "85vh", overflowY: "auto", padding: "1.5rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
               <h2 className="gb-modal-title" style={{ marginBottom: 0 }}>📖 How Gate Buddy Works</h2>
               <button onClick={() => setShowGuidelines(false)} style={{ background: "none", border: "none", fontSize: "1.3rem", cursor: "pointer", color: "#94a3b8" }}>✕</button>
