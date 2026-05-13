@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import SpiderManAnimation from "./SpiderManAnimation";
 import "./Dashboard.css";
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [showSpidey, setShowSpidey] = useState(true);
   const navigate = useNavigate();
 
   // Dark mode state - initialize from localStorage or default to false
@@ -67,7 +69,7 @@ const Dashboard = () => {
         if (data.success && data.profile.upiId) {
           setUpiId(data.profile.upiId);
         }
-      } catch {}
+      } catch { }
     };
     if (token) loadProfile();
   }, [API_URL, token]);
@@ -109,14 +111,32 @@ const Dashboard = () => {
         {/* Top bar */}
         <header className="dashboard-header glass">
           <div className="header-brand">
-            <span className="brand-icon"></span>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              background: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '3px solid #10b981',
+              boxShadow: '0 4px 0 #065f46',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}>
+              <img
+                src="/logo.png"
+                alt="Hostel Buddy Logo"
+                style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+              />
+            </div>
             <h2>Hostel Buddy</h2>
           </div>
 
           <div className="header-actions">
             {user.role === "admin" && (
-              <button 
-                onClick={() => navigate("/admin")} 
+              <button
+                onClick={() => navigate("/admin")}
                 style={{
                   background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                   color: "white",
@@ -131,14 +151,6 @@ const Dashboard = () => {
                 Admin Panel
               </button>
             )}
-            <button
-              className="theme-toggle"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              aria-label="Toggle Dark Mode"
-              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
             <button onClick={handleLogout} className="logout-btn">
               Logout
             </button>
@@ -149,12 +161,16 @@ const Dashboard = () => {
         <main className="dashboard-main">
           <div className="welcome-section">
             <h1 className="gradient-text">Hey, Buddy 👋</h1>
-            <p className="dashboard-subtitle">
-              Welcome back, <span className="highlight-text">{user.email ? (() => {
-                const namePart = user.email.split('@')[0].split('.')[0];
-                return namePart.charAt(0).toUpperCase() + namePart.slice(1);
-              })() : "User"}</span>
-            </p>
+            {showSpidey && (
+              <div className="spidey-landing-zone">
+                <SpiderManAnimation
+                  userName={user.email ? (() => {
+                    const namePart = user.email.split('@')[0].split('.')[0];
+                    return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                  })() : "User"}
+                />
+              </div>
+            )}
           </div>
 
           <div className="services-container">

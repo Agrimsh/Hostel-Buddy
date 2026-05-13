@@ -97,11 +97,20 @@ const Login = () => {
 
   return (
     <div className="container">
+      <div style={{ textAlign: 'center', marginBottom: '2rem', animation: 'fadeInDown 0.8s ease-out' }}>
+        <h1 className="title" style={{ fontSize: '3rem', color: '#10b981', textShadow: '0 5px 0 #047857', marginBottom: '0.5rem', lineHeight: '1.1' }}>
+          Welcome to Hostel Buddy
+        </h1>
+        <p className="subtitle" style={{ fontSize: '1.2rem', color: '#fbbf24', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          Your Hostel Companion
+        </p>
+      </div>
+
       {step === 1 ? (
         <form onSubmit={handleSendOtp}>
           <div className="form-group">
-            <h1 className="title">Welcome</h1>
-            <p className="subtitle">Sign in with your Galgotias University email</p>
+            <h2 style={{ textAlign: 'center', color: '#f1f5f9', fontSize: '1.4rem', fontWeight: '800', marginBottom: '0.5rem' }}>Sign In</h2>
+            <p className="subtitle" style={{ marginBottom: '1.5rem' }}>Use your Galgotias University email</p>
 
             <label className="label">College Email</label>
             <input

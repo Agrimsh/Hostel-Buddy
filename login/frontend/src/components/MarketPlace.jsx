@@ -249,13 +249,6 @@ const MarketPlace = () => {
             <h2>Marketplace</h2>
           </div>
           <div className="header-actions">
-            <button
-              className="theme-toggle"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              aria-label="Toggle Dark Mode"
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
             <button className="add-item-btn" onClick={() => setShowAddModal(true)}>
               + List Item
             </button>

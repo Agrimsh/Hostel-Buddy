@@ -1,0 +1,285 @@
+/* ============================================================
+   Spider-Man Pixel Animation — Dashboard Enhancement
+   Smooth Transform-Based Version (Zero Layout Shifts)
+   ============================================================ */
+
+/* ── The Landing Zone (reserves space in document flow) ── */
+.spidey-landing-zone {
+  position: relative;
+  width: 100%;
+  height: 60px; /* Space reserved below the heading */
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 10;
+}
+
+/* ── Main Container (anchored to the landing zone) ── */
+.spidey-container {
+  position: absolute;
+  /* Centered perfectly in the landing zone */
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+/* ── Character Wrapper (handles all the motion) ── */
+.spidey-character {
+  width: 56px;
+  height: 72px;
+  position: relative;
+  z-index: 11;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.spidey-character img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 4px rgba(211, 47, 47, 0.3));
+}
+
+/* ── SWING PHASE ── */
+.spidey-p-swing .spidey-character {
+  animation: swingIn 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* We animate from the top-right of the viewport to the local (0,0) of the landing zone.
+   All transforms (translate, rotate, scale) are combined into one keyframe to prevent CSS overrides. */
+@keyframes swingIn {
+  0% {
+    transform: translate(50vw, -80vh) rotate(-45deg) scale(0.6);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate(30vw, -40vh) rotate(-20deg) scale(0.8);
+  }
+  60% {
+    transform: translate(10vw, -10vh) rotate(15deg) scale(0.9);
+  }
+  80% {
+    transform: translate(2vw, -2vh) rotate(-5deg) scale(1);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── LAND PHASE ── */
+.spidey-p-land .spidey-character {
+  transform: translate(0, 0) scale(1);
+  animation: landSquash 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes landSquash {
+  0%   { transform: scale(1, 1); }
+  30%  { transform: scale(1.15, 0.85) translateY(5px); }
+  50%  { transform: scale(0.9, 1.1) translateY(-8px); }
+  75%  { transform: scale(1.05, 0.95) translateY(2px); }
+  100% { transform: scale(1, 1) translateY(0); }
+}
+
+/* ── SIT, WAVE, TALK, IDLE PHASES ── */
+.spidey-p-sit .spidey-character,
+.spidey-p-wave .spidey-character,
+.spidey-p-talk .spidey-character,
+.spidey-p-idle .spidey-character {
+  transform: translate(0, 0) scale(1);
+  animation: breathe 2.5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1) translateY(-2px); }
+}
+
+/* ── Web Line (visible during swing) ── */
+.spidey-web-line {
+  position: absolute;
+  bottom: 60px; /* Attach near Spidey's hand */
+  left: 50%;
+  width: 2px;
+  height: 150vh; /* Long enough to go off screen */
+  background: linear-gradient(to top, rgba(189, 189, 189, 0.8), transparent);
+  transform-origin: bottom center;
+  animation: webFollow 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  z-index: 9;
+}
+
+@keyframes webFollow {
+  0% {
+    transform: translate(50vw, -80vh) rotate(45deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate(30vw, -40vh) rotate(30deg);
+  }
+  60% {
+    transform: translate(10vw, -10vh) rotate(15deg);
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+/* ── Speech Bubble ── */
+.spidey-bubble {
+  position: absolute;
+  left: 100%;
+  bottom: 20px;
+  margin-left: 12px;
+  background: #1e293b;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: 6px 14px;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #0f172a, 0 0 15px rgba(251, 191, 36, 0.12);
+  z-index: 12;
+  will-change: transform, opacity;
+}
+
+.sb-pop {
+  animation: bubblePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.sb-idle {
+  animation: bubbleFloat 3s ease-in-out infinite;
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(0) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+.sb-text {
+  font-family: 'Nunito', 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fbbf24;
+  text-shadow: 0 1px 0 #b45309;
+  letter-spacing: 0.3px;
+}
+
+.sb-tail {
+  position: absolute;
+  left: -8px;
+  bottom: 12px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 8px solid #fbbf24;
+}
+
+.sb-tail::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 6px solid #1e293b;
+}
+
+/* ── Landing Impact Poof ── */
+.spidey-poof {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 8;
+}
+
+.poof-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fbbf24;
+  border-radius: 50%;
+  transform-origin: center;
+  animation: poofBurst 0.5s ease-out forwards;
+}
+
+@keyframes poofBurst {
+  0% {
+    transform: rotate(var(--a)) translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--a)) translateX(var(--d)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ── Responsiveness ── */
+@media (max-width: 768px) {
+  .spidey-landing-zone {
+    height: 50px;
+  }
+  .spidey-character {
+    width: 46px;
+    height: 60px;
+  }
+  .spidey-bubble {
+    padding: 5px 10px;
+    margin-left: 8px;
+  }
+  .sb-text {
+    font-size: 0.65rem;
+  }
+  @keyframes swingArc {
+    0%   { transform: translate(40vw, -60vh); opacity: 0; }
+    10%  { opacity: 1; }
+    50%  { transform: translate(20vw, -20vh); }
+    100% { transform: translate(0, 0); opacity: 1; }
+  }
+}
+
+@media (max-width: 480px) {
+  .spidey-landing-zone {
+    height: 45px;
+  }
+  .spidey-character {
+    width: 40px;
+    height: 52px;
+  }
+  .spidey-bubble {
+    padding: 4px 8px;
+    margin-left: 8px;
+  }
+  .sb-text {
+    font-size: 0.6rem;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .spidey-character, .spidey-bubble, .spidey-web-line, .poof-dot {
+    animation: none !important;
+    transform: none !important;
+  }
+  .spidey-p-swing .spidey-character {
+    opacity: 0; /* Just hide during swing if reduced motion */
+  }
+}
