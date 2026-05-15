@@ -16,6 +16,10 @@ const Inbox = () => {
   const [loading, setLoading] = useState(true);
   const [msgLoading, setMsgLoading] = useState(false);
 
+  const [searchParams] = window.location.search ? [new URLSearchParams(window.location.search)] : [new URLSearchParams()];
+  const targetUser = searchParams.get("chatUser");
+  const targetItem = searchParams.get("itemId");
+
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") === "true";
   });
@@ -109,6 +113,23 @@ const Inbox = () => {
         const data = await res.json();
         if (data.success) {
           setConversations(data.data);
+          
+          // Deep link auto-selection
+          if (targetUser && targetItem && !activeConv) {
+            const target = data.data.find(c => c.otherUser === targetUser && c.itemId === targetItem);
+            if (target) {
+              setActiveConv(target);
+              setMobileView('chat');
+            } else {
+              // If not found in existing list (e.g., first message), create a dummy one to start chat
+              setActiveConv({
+                otherUser: targetUser,
+                itemId: targetItem,
+                itemTitle: "New Chat",
+              });
+              setMobileView('chat');
+            }
+          }
         }
       } catch (err) {
         console.error('Error fetching conversations:', err);
@@ -117,7 +138,7 @@ const Inbox = () => {
       }
     };
     fetchConversations();
-  }, [API_URL, currentUser]);
+  }, [API_URL, currentUser, targetUser, targetItem]);
 
   // Fetch messages when active conversation changes
   useEffect(() => {

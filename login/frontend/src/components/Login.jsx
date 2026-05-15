@@ -140,9 +140,17 @@ const Login = () => {
               onChange={(e) => setOtp(e.target.value)}
               required
             />
-            <p className="error-msg" style={{ color: '#6b7280', fontSize: '12px', marginTop: '10px' }}>
-              Sent to {email} &bull; <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => { setStep(1); setOtp(""); setError(""); }}>Change Email</span>
-            </p>
+            <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+              <p className="error-msg" style={{ color: '#94a3b8', fontSize: '13px', margin: 0, wordBreak: 'break-all', textAlign: 'center' }}>
+                Sent to: <span style={{ color: '#f1f5f9', fontWeight: '500' }}>{email}</span>
+              </p>
+              <span 
+                style={{ cursor: 'pointer', color: '#3b82f6', fontSize: '13px', fontWeight: '600', textDecoration: 'underline' }} 
+                onClick={() => { setStep(1); setOtp(""); setError(""); }}
+              >
+                Change Email
+              </span>
+            </div>
           </div>
           {error && <p className="error-msg">{error}</p>}
           <button type="submit" className="btn" disabled={loading || otp.length < 6}>

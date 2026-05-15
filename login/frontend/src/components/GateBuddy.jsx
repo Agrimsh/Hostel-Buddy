@@ -19,7 +19,9 @@ const GateBuddy = () => {
   const token = localStorage.getItem("token");
 
   // ── State: Core ────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState("live"); // "live" | "myTrip" | "requests"
+  const [searchParams] = window.location.search ? [new URLSearchParams(window.location.search)] : [new URLSearchParams()];
+  const initialTab = searchParams.get("tab") || "live";
+  const [activeTab, setActiveTab] = useState(initialTab); // "live" | "myTrip" | "requests"
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
 

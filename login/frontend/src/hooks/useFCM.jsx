@@ -29,11 +29,7 @@ const useFCM = () => {
 
     const registerFCM = async () => {
       try {
-        // Request notification permission
-        const permission = await Notification.requestPermission();
-        
-        if (permission !== "granted") {
-          console.log("Notification permission denied by user.");
+        if (Notification.permission !== "granted") {
           return;
         }
 

@@ -7,6 +7,7 @@ import MarketPlace from "./components/MarketPlace";
 import Inbox from "./components/Inbox";
 import NotificationListener from "./components/NotificationListener";
 import GateBuddy from "./components/GateBuddy";
+import NotificationPrompt from "./components/NotificationPrompt";
 import useFCM from "./hooks/useFCM.jsx";
 
 // Admin imports
@@ -48,6 +49,7 @@ const AppContent = () => {
     <>
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <NotificationListener />
+      <NotificationPrompt />
 
       <Routes>
         <Route path="/" element={<Login />} />

@@ -45,17 +45,17 @@ self.addEventListener("notificationclick", (event) => {
 
   switch (data.type) {
     case "gate_trip_posted":
-      url = "/gate-buddy";
+      url = "/gate-buddy?tab=live";
       break;
     case "booking_request":
     case "booking_approved":
     case "booking_rejected":
     case "trip_cancelled":
     case "order_arrived":
-      url = "/gate-buddy";
+      url = "/gate-buddy?tab=requests";
       break;
     case "chat":
-      url = "/inbox";
+      url = `/inbox?chatUser=${data.sender}&itemId=${data.itemId}`;
       break;
     default:
       url = "/dashboard";
