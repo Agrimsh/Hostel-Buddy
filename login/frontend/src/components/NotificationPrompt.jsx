@@ -4,31 +4,39 @@ import "./NotificationPrompt.css";
 
 const NotificationPrompt = () => {
   const location = useLocation();
-  const [permission, setPermission] = useState(Notification.permission);
+  const [permission, setPermission] = useState(
+    "Notification" in window ? Notification.permission : "default"
+  );
   const [dismissed, setDismissed] = useState(false);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token || dismissed) return;
+    if (!token || dismissed || !("Notification" in window)) return;
 
     const checkPermission = async () => {
       try {
-        const permStatus = await navigator.permissions.query({ name: "notifications" });
-        permStatus.onchange = () => {
+        if (navigator.permissions && navigator.permissions.query) {
+          const permStatus = await navigator.permissions.query({ name: "notifications" });
+          permStatus.onchange = () => {
+            setPermission(permStatus.state);
+          };
           setPermission(permStatus.state);
-        };
-        setPermission(permStatus.state);
-        
-        // Auto-request native prompt if it hasn't been asked yet
-        if (permStatus.state === "prompt" || Notification.permission === "default") {
-          const newPerm = await Notification.requestPermission();
-          setPermission(newPerm);
-          if (newPerm === "granted") {
-            window.location.reload();
+          
+          // Auto-request native prompt if it hasn't been asked yet
+          if (permStatus.state === "prompt" || Notification.permission === "default") {
+            const newPerm = await Notification.requestPermission();
+            setPermission(newPerm);
+            if (newPerm === "granted") {
+              window.location.reload();
+            }
           }
+        } else {
+          // Fallback for Safari
+          setPermission(Notification.permission);
         }
       } catch (error) {
         console.error("Error querying notification permissions:", error);
+        setPermission(Notification.permission);
       }
     };
 
@@ -36,6 +44,7 @@ const NotificationPrompt = () => {
   }, [location.pathname, token, dismissed]);
 
   const requestPermission = async () => {
+    if (!("Notification" in window)) return;
     try {
       const newPermission = await Notification.requestPermission();
       setPermission(newPermission);
@@ -47,7 +56,7 @@ const NotificationPrompt = () => {
     }
   };
 
-  if (!token || permission === "granted" || dismissed) {
+  if (!token || permission === "granted" || dismissed || !("Notification" in window)) {
     return null;
   }
 
@@ -63,7 +72,9 @@ const NotificationPrompt = () => {
           Hostel Buddy relies on notifications for important updates like gate buddy and marketplace chats.
           <strong> Please turn on the notification.</strong>
         </p>
-
+        <div className="request-box">
+          <button className="btn" style={{ background: "#fbbf24", color: "#1e293b", fontWeight: "bold" }} onClick={requestPermission}>Enable</button>
+        </div>
       </div>
     </div>
   );
